@@ -1,4 +1,5 @@
 """Test derico.blicca.promoblock installation."""
+
 import pytest
 from plone import api
 from plone.app.testing import setRoles

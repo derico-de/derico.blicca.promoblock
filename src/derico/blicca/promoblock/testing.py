@@ -1,4 +1,5 @@
 """Testing setup for derico.blicca.promoblock."""
+
 import os
 
 import plone.app.theming

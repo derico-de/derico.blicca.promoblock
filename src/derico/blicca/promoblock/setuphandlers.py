@@ -1,4 +1,5 @@
 """Setup handlers for derico.blicca.promoblock."""
+
 from Products.CMFPlone.interfaces import INonInstallable
 from zope.interface import implementer
 
