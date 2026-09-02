@@ -1,0 +1,14 @@
+/*
+ * The Promo block's one stylesheet, dressing both surfaces (the React
+ * `view` and the Chameleon template) through anatomy-class parity —
+ * contract §6.1. Scope-wrapped at build time by build-plugins/scope-wrap.ts.
+ *
+ * Ticket 11 writes the real sheet. What is here is the block root and the
+ * seam rule that proves the pipeline: per ADR 0002 the default lives at its
+ * point of use, `var(--promo-x, <literal>)`, and the block declares no
+ * `--promo-*` property anywhere.
+ */
+.promo {
+  display: block;
+  padding: var(--promo-padding-block, 2rem) var(--promo-padding-inline, 1.5rem);
+}
