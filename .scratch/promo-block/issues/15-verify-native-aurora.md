@@ -17,6 +17,21 @@ and `view`. No live Aurora (Seven) is stood up; that is out of scope on the map.
 upstream `@plone/cmsui` tests its own widgets this same way, so the runner is
 inherited rather than chosen.
 
+**One thing ticket 06 left for this ticket to decide.** The runner is standing
+and `@plone/registry` / `@plone/helpers` are the real published packages at the
+host's versions — but the five installers above are **not** installed. Ticket 06
+instead transcribed `@plone/cmsui`'s registration *list* into
+`test/upstream-registry.ts`, with **named placeholder components**. Installing
+the real installers means pulling the Aurora app stack (`@plone/cmsui` alpha.4
+drags in `@plone/components`, quanta, emoji-mart, babel) into a block add-on's
+devDependencies. Decide which buys more: the transcription catches every
+*resolution* difference (which key resolves, and to nothing where Blicca-only),
+which is what this ticket calls "the registry differences are the risk"; the
+real installers additionally pin identity — that `align` resolves to cmsui's
+actual `AlignWidget` object, not merely to something registered under `align`.
+Both roads are open: ticket 06's assertions are phrased by key, so swapping
+placeholders for real components does not rewrite them.
+
 Two specifics ticket 02 turned up that this harness must cover:
 
 - **`choices` is registered in Blicca and nowhere upstream.** A field relying on

@@ -187,6 +187,28 @@ native-Aurora path has been exercised, not that a spec exists for it.
   with `plonecli add view`, and every profile XML change needs
   `plonecli add upgrade_step`.
 
+- [Build: the `bundle-src/` npm workspace](issues/06-build-the-js-workspace.md)
+  — **Workspace green (build + 13 tests + typecheck); the facade stubs were
+  dropped for the real packages.** fragmentsblock's Vite half is copied
+  near-verbatim (`promo-block.js`, artifacts committed into `static/`), and
+  `assertNoSharedInBundle` was **proved to fire**, not merely present. But
+  `@plone/registry` **4.0.0-alpha.1** and `@plone/helpers` **2.0.0-alpha.7** —
+  the host's own versions — are **installed for real, not aliased to stubs**:
+  they pull no app stack (154 packages), and a stub would re-implement the
+  resolution order the block depends on. It caught two divergences the stub hid
+  — `blocks.blocksConfig` is created by `@plone/blocks`, not by a bare registry
+  (hence blocks-before-cmsui), and `getStyleFieldDefinitionsFromRegistry` takes
+  `args` as a **required** second parameter. Note fragmentsblock's
+  `@plone/registry: "*"` resolves to 2.7.3, which has **no
+  `registerWidget`/`getWidget`** — do not copy its stub. What stayed local is
+  the *registration set*: `test/upstream-registry.ts` transcribes cmsui's twelve
+  registrations plus `@plone/blocks`' lone `blockWidth`, with Blicca's seven
+  overrides deliberately absent. vitest runs on **jsdom** (07/08/15 all mount
+  React). Sandbox: `pnpm install --store-dir /dev/shm/pnpm-store`. **Ticket 15
+  now has a decision to make** — whether to add the real `@plone/*` installers
+  (Aurora app stack in a block's devDeps) or keep the transcription; noted on
+  its body.
+
 ## Not yet specified
 
 <!-- empty: the property surface — the last patch of fog — graduated into
