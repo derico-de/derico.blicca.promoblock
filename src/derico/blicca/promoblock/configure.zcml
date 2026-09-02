@@ -1,0 +1,35 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="derico.blicca.promoblock">
+
+  <i18n:registerTranslations directory="locales" />
+
+  <include file="permissions.zcml" />
+
+  <genericsetup:registerProfile
+      name="default"
+      title="Derico Blicca Promoblock"
+      description="Aurora Promo block: an authored promo card with kicker, title, description, image and calls to action"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      directory="profiles/default"
+      />
+
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="Derico Blicca Promoblock (uninstall)"
+      description="Uninstalls derico.blicca.promoblock"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      directory="profiles/uninstall"
+      />
+
+  <genericsetup:importStep
+      name="derico.blicca.promoblock-uninstall"
+      title="Derico Blicca Promoblock uninstall"
+      description="Uninstall derico.blicca.promoblock"
+      handler="derico.blicca.promoblock.setuphandlers.uninstall"
+      />
+
+</configure>
