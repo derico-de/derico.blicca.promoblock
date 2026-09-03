@@ -60,3 +60,26 @@ Two specifics ticket 02 turned up that this harness must cover:
 ## Answer
 
 <!-- fill in -->
+
+
+## Notes from [ticket 11](11-build-the-stylesheet.md) (2026-09-03)
+
+Two things to carry into the Aurora harness:
+
+1. **Nothing dresses the block there.** The sheet is `@scope`-wrapped to
+   `.aurora-editor`, `.aurora-editor-portal` and `.aurora-blocks-view`, roots
+   that exist in Blicca and nowhere in Aurora proper — the delivery gap ticket
+   17 flagged. `bundle-src/test/sheet-selectors.test.tsx` is the part of it a
+   headless suite can hold: it asserts every selector in the sheet matches
+   markup one of the two renderers actually emits, against the unsubstituted
+   upstream registry. That is reachability, not appearance.
+2. **The title is body-weight in Aurora and 600 under Barceloneta.** Ticket 04
+   states type SIZE only (`--promo-*-size`), so weight and leading come from the
+   host, and Aurora's Tailwind preflight resets headings to `inherit`. The two
+   surfaces agree within each host — which is what parity claims — but the two
+   HOSTS differ, and 1.75rem at body weight is the whole of the title's
+   distinction there. If that reads as broken, the answer is a twentieth
+   property, not a rule: ticket 04's growth policy allows it as a minor
+   addition because the axis already exists in the markup.
+   The editor's `.promo-incomplete` / `.promo-notice` chrome is undressed there
+   for the same root reason, which is survivable only because it is prose.

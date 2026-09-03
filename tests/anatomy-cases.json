@@ -278,6 +278,24 @@
         "why": "No server has run behind this node, so imageSrc takes step 2 and previews the raw reference.",
         "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"../resolveuid/gone/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
       }
+    },
+    {
+      "name": "reference-case-the-contact-band",
+      "note": "Ticket 13, reference case A: derico.de's closing call to action authored as a Promo, copied word for word off plonetheme.derico/templates/contact.pt as it renders on the running site. Evidence, never specification — it is here to exercise the image-less path whole, not to make the band the block's subject. No image, so `center`; the secondary link is a `mailto:`, which is the value path_of() would hand back with its scheme stripped; and `blockWidth`/`backgroundColor` ARE carried in the data, so the case also states that the block emits nothing for either — they belong to the host wrapper outside this markup.",
+      "data": {
+        "head_title": "",
+        "title": "Erstgespräch vereinbaren",
+        "description": "Sie schildern die Aufgabe. Wir klären gemeinsam, welcher nächste Schritt sinnvoll ist.",
+        "cta_primary_label": "Kontakt",
+        "cta_primary_link": "/contact",
+        "cta_primary_variant": "button",
+        "cta_secondary_label": "E-Mail schreiben",
+        "cta_secondary_link": "mailto:md@derico.de",
+        "cta_secondary_variant": "link",
+        "blockWidth": "full",
+        "backgroundColor": "dark"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Erstgespräch vereinbaren</h2><p class=\"promo-description\">Sie schildern die Aufgabe. Wir klären gemeinsam, welcher nächste Schritt sinnvoll ist.</p><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/contact\">Kontakt</a><a class=\"promo-cta promo-cta-link\" href=\"mailto:md@derico.de\">E-Mail schreiben</a></div></div></div>"
     }
   ]
 }

@@ -232,3 +232,35 @@ someone editing `promo.css` and about to hoist nineteen scattered literals into
 one tidy declaration block on `.promo`. The lockstep test catches that change;
 the ADR explains why the obvious cleanup is wrong, and why `derico-hero` doing
 the opposite in the same codebase is not an inconsistency to resolve.
+
+
+## Correction from [ticket 11](11-build-the-stylesheet.md) (2026-09-03)
+
+**`--promo-cta-hover-bg`'s published default was dead on its own fallback.**
+Measured on the running site: `CanvasText` already IS black in a light colour
+scheme, so `color-mix(in oklab, CanvasText 88%, black)` computes to
+`oklab(0 0 0)` — the fill exactly. The UNTHEMED button therefore had no hover
+feedback at all, which is the dead button this property was invented to prevent,
+reached from the other end. The default was reasoned from the themed case and
+never evaluated against its own fallback; nothing could have caught that before
+something was built.
+
+The default is now
+
+```
+color-mix(in oklab, var(--promo-cta-bg, CanvasText) 88%, var(--promo-cta-fg, Canvas))
+```
+
+which cannot degenerate, because the ink contrasts with the fill **by
+construction**. The direction this ticket wanted survives — copper still darkens
+(L 0.72 → 0.6552 against the published spelling's 0.6336) — and a dark fill with
+light ink now brightens, the conventional move for that case rather than a
+second dead button. The README table is updated to match.
+
+This **changes a published default**, which the growth policy above calls
+breaking. Taken now because nothing has been released (`1.0.0-alpha.1`, no
+remote, ticket 18 open) and because it repairs the default to meet this ticket's
+own stated intent rather than changing that intent.
+
+The other eighteen defaults were verified unchanged on the running site; see
+ticket 11's answer for the readings.

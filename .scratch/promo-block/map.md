@@ -380,6 +380,61 @@ native-Aurora path has been exercised, not that a spec exists for it.
   the server's `<img>` carries `width`/`height` only when scales resolved and
   the canvas's never does, so the sheet must size `.promo-image` itself.
 
+- [Build: one scope-wrapped stylesheet for both surfaces](issues/11-build-the-stylesheet.md)
+  — **Built, verified on the running site, and one published default corrected
+  because the site proved it dead.** `--promo-cta-hover-bg`'s
+  `color-mix(… CanvasText 88%, black)` computes to `oklab(0 0 0)` — `CanvasText`
+  already IS black — so the UNTHEMED button had no hover feedback at all, the
+  dead button the property was invented to prevent, reached from the other end.
+  Now mixed towards `var(--promo-cta-fg, Canvas)`, which cannot degenerate
+  because the ink contrasts with the fill by construction, and copper still
+  darkens; **a breaking default change**, taken only because nothing is
+  released. The other eighteen were read off `/Plone` anonymously with every
+  `--promo-*` unset, which is the bare-host case ticket 04 asked for. One grid
+  for all three placements (`right` reverses the TEMPLATE, so
+  `--promo-image-width` always names the image's track); the narrow collapse is
+  a **container** query at 34rem — the canvas column and the published page are
+  different widths at one viewport — and had to be written on the CHILDREN at
+  (0,3,0), because a container cannot query itself and the obvious `.promo > *`
+  spelling would have lost to the wide `right` rules and collapsed only one
+  placement. Three declarations are parity statements, not looks: `margin: 0`
+  (Barceloneta pads, preflight zeroes), `white-space: normal` (Plate's
+  `pre-wrap` inherits in) and sizing the `<img>` from the sheet (only the server
+  carries intrinsics). The ticket's open question — dress the editor's chrome? —
+  is **yes, in literals only**: it is the editor talking to the author, and a
+  theme must not be able to hide a nag. Held by two new suites, both
+  mutation-checked with passing controls: `seam-lockstep.test.ts` fails in five
+  directions (undocumented, unconsumed, drifted, fallback-less, DECLARED) with a
+  recursive paren-balanced parser because the hover default nests a `var()`; and
+  `sheet-selectors.test.tsx`, which catches the *silent* failure nothing else
+  covers — sheet and renderers agree by NAME only, and ticket 17 renamed
+  `promo-content` late. Flagged rather than taken: **no `--promo-cta-padding`**
+  (a literal), and the title is weight 600 under Barceloneta but **body weight
+  in Aurora** — ticket 04 states size only. The README is now the block's
+  published contract instead of plonecli boilerplate. Unblocks 13, 14 and 16.
+
+- [Verify: reference case A — the image-less centred band](issues/13-verify-reference-case-imageless.md)
+  — **Expressible, on both surfaces, with nothing the block lacks — and the dark
+  slot corrected the README on its way through.** The band is the fixture's 24th
+  case, so both renderers are held to it; a new authorability block in the
+  schema suite says an *author* could have typed it (and that Aurora proper
+  offers no ground, so the native case A is an unbanded promo); and
+  `test_reference_case_band.py` runs the only test of the whole publishing
+  pipeline — `render_blocks`, transforms, wrapper stamp, renderer — asserting
+  the block is the wrapper's only child, the `mailto:` survives it, a picked
+  reference resolves **beside** the mailto in the same render, and a visitor
+  gets the identical string. Live on `/Plone/promo-band-probe`: markup, metrics
+  and sidebar round-trip all as specified, zero console errors. Two README
+  corrections the site forced: the flattening rule names `[data-slate-editor]`
+  too (canvas and page flatten **alike**), and the button's inversion is not the
+  system-colour pair but the same flattening — **`--promo-cta-fg` is inert on
+  the `dark` slot** while `--promo-cta-bg` passes through, so the seam can take
+  the fill back and never the ink. One honest surface difference found rather
+  than assumed: the title is weight 600 published and 400 in the canvas, now
+  stated in the README as the price of not scope-locking weight. Handed on: the
+  host image widget renders **unlabelled** (ticket 14), and the three-property
+  token line with its dark-slot caveat (ticket 16).
+
 ## Not yet specified
 
 <!-- empty: the property surface — the last patch of fog — graduated into

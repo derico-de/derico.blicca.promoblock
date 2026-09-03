@@ -25,6 +25,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import config from '@plone/registry';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 import PromoSchema from '../src/promo/schema';
 import { installUpstreamRegistry } from './upstream-registry';
@@ -184,5 +186,66 @@ describe('properties', () => {
 
   it('require nothing — a half-authored promo must save', () => {
     expect(PromoSchema().required).toEqual([]);
+  });
+});
+
+/**
+ * Reference case A (ticket 13): can the sidebar actually author derico.de's
+ * contact band?
+ *
+ * The band's stored node lives in `tests/anatomy-cases.json` as
+ * `reference-case-the-contact-band`, where both renderers are held to the
+ * markup it produces. That says the two surfaces agree; it does not say an
+ * author could ever have typed it. This does — and it is the assertion that
+ * would have caught the failure the ticket warns about, a reference case
+ * reproduced only by writing JSON the sidebar cannot offer.
+ */
+describe('reference case A — the contact band (ticket 13)', () => {
+  const CASES: { name: string; data: Record<string, unknown> }[] = JSON.parse(
+    readFileSync(
+      path.join(path.resolve(import.meta.dirname, '..', '..'), 'tests', 'anatomy-cases.json'),
+      'utf8',
+    ),
+  ).cases;
+  const band = CASES.find((entry) => entry.name === 'reference-case-the-contact-band');
+
+  it('is in the shared fixture, which is what the rest of this block reads', () => {
+    // The guard a fixture-driven test needs first: a renamed case would turn
+    // every assertion below into a comparison against nothing.
+    expect(band, 'reference-case-the-contact-band missing from the fixture').toBeDefined();
+  });
+
+  it('is offered field for field, so nothing in it is JSON only', () => {
+    const schema = PromoSchema({ formData: band!.data });
+    const offered = schema.fieldsets.flatMap((fieldset) => fieldset.fields);
+    for (const field of Object.keys(band!.data)) {
+      // `backgroundColor` is the exception, and it is the host's rather than
+      // the block's: the ground comes from `backgroundField()`, which returns
+      // null where the host registers no definitions. See below.
+      if (field === 'backgroundColor') continue;
+      expect(offered, field).toContain(field);
+    }
+  });
+
+  it('closes both conditionals, exactly as the band needs', () => {
+    const schema = PromoSchema({ formData: band!.data });
+    const offered = schema.fieldsets.flatMap((fieldset) => fieldset.fields);
+    // No image, so no placement control — and the band authors none.
+    expect(offered).not.toContain('align');
+    // Labels are typed, so the card link is withdrawn — the click rule as a
+    // sidebar affordance rather than as a render-time rule.
+    expect(offered).not.toContain('card_link');
+    expect(Object.keys(band!.data)).not.toContain('card_link');
+  });
+
+  it('cannot get its dark ground in Aurora proper, and that is the design', () => {
+    // The band's ground is `backgroundColor: dark` — a HOST control painting
+    // the wrapper outside this block's root, from the cross-block
+    // `--aurora-block-bg-*` vocabulary. Against an upstream registry the
+    // control is absent, so on native Aurora reference case A renders as the
+    // same promo without a band. The block mints no `--promo-bg` to close
+    // that gap; two grounds for one block is the defect.
+    const offered = PromoSchema({ formData: band!.data }).fieldsets.flatMap((f) => f.fields);
+    expect(offered).not.toContain('backgroundColor');
   });
 });

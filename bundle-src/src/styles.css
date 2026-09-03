@@ -1,14 +1,360 @@
 /*
- * The Promo block's one stylesheet, dressing both surfaces (the React
- * `view` and the Chameleon template) through anatomy-class parity —
- * contract §6.1. Scope-wrapped at build time by build-plugins/scope-wrap.ts.
+ * The Promo block's ONE stylesheet. It dresses BOTH surfaces — the React
+ * `view` (src/promo/PromoView.tsx) and the Chameleon template
+ * (views/promo_block_view.pt) — through anatomy-class parity, block add-on
+ * contract §6.1. Packaging wraps this whole file in
  *
- * Ticket 11 writes the real sheet. What is here is the block root and the
- * seam rule that proves the pipeline: per ADR 0002 the default lives at its
- * point of use, `var(--promo-x, <literal>)`, and the block declares no
- * `--promo-*` property anywhere.
+ *   @scope (.aurora-editor, .aurora-editor-portal, .aurora-blocks-view)
+ *       to (.aurora-pattern-island)
+ *
+ * (build-plugins/scope-wrap.ts). Three roots, not two: a block's sheet has to
+ * reach the published page as well as the canvas and the editor's portals.
+ *
+ * ── the rules of the road ───────────────────────────────────────────────
+ *
+ * 1. THE SEAM DECLARES NOTHING. Every `--promo-*` axis is spelled
+ *    `var(--promo-x, <literal>)` at its point of use, and this file declares
+ *    no `--promo-*` property anywhere — ADR 0002,
+ *    `docs/adr/0002-seam-defaults-live-at-their-point-of-use.md`. A property
+ *    declared on `.promo` would SHADOW a theme's inherited `:root` value and
+ *    force exactly the specificity escalation the seam exists to prevent.
+ *    Hoisting the nineteen scattered literals into one tidy declaration block
+ *    is the obvious cleanup, and it is the mistake the ADR exists to stop.
+ * 2. THE DEFAULTS ARE PUBLISHED. Ticket 04's growth policy makes CHANGING a
+ *    default a breaking change, so the property table in `README.md` is the
+ *    contract and `test/seam-lockstep.test.ts` holds this file to it literal
+ *    for literal — in both directions, including "no `--promo-*` is declared".
+ * 3. DESCENT, NOT NAMES. Every rule descends from `.promo`, the block's own
+ *    root — never the host's `.block-promo` wrapper stamp, which belongs to
+ *    the host, and this block has two hosts (ticket 17). Two deliberate
+ *    exceptions, both marked where they appear: `.promo-cardlink` (the
+ *    wrapper, an ANCESTOR of the root) and the editor's `.promo-incomplete` /
+ *    `.promo-notice` chrome, which ticket 17 rule 3 keeps outside the root.
+ * 4. NEVER SELECT ON `[href]`. The canvas drops every `href` and keeps every
+ *    element, tag and class, so `[href]` is the one selector that can tell
+ *    the two surfaces apart (ticket 08). `.promo-cardlink` and `.promo-cta`
+ *    are the hooks.
+ * 5. NO `!important`, and no `outline`: the block sets no focus ring at all,
+ *    so the host's own `:focus-visible` reaches the CTA unopposed (ticket 04).
+ *
+ * ── the one interaction we lose on purpose ──────────────────────────────
+ *
+ * `blocks_view.css:488` ships
+ * `:is(.aurora-blocks-view, [data-slate-editor]) .block.has--backgroundColor--dark
+ *  :where(*) { color: inherit }` at (0,3,0), and our inks are (0,2,0). On the
+ * `dark` background slot the promo therefore goes monochrome. That rule is
+ * deliberate upstream — it is the one that fights the theme rather than
+ * deferring to it — and we defer rather than escalate. README documents it.
+ *
+ * ── what is deliberately NOT here ───────────────────────────────────────
+ *
+ * The three promo widgets (`promo-textarea-widget`, `promo-select-widget`,
+ * `promo-link-widget`). This file is scope-wrapped to roots that exist in
+ * Blicca and nowhere in Aurora proper, so it cannot reach the sidebar there;
+ * the widgets carry the host's own metrics instead (ticket 07).
  */
+
+/* ── the block root ─────────────────────────────────────────────────────── */
+
 .promo {
+  /* One grid for all three placements. `center` is a single column with the
+   * image above the copy; `left` / `right` are two columns. `--promo-gap` is
+   * the same axis in both readings — image against copy. */
+  display: grid;
+  gap: var(--promo-gap, 2rem);
+  /* `--promo-padding` defaults to 0 ON PURPOSE: the host's background slot
+   * already pads the band with `--aurora-space-block`, and a non-zero default
+   * would double-pad every banded promo. Turn it on together with a border or
+   * a ground. */
+  padding: var(--promo-padding, 0);
+  border: var(--promo-border, none);
+  border-radius: var(--promo-radius, 0);
+  box-sizing: border-box;
+  /* The Plate editable computes `white-space: pre-wrap` and it inherits into
+   * everything rendered inside it, breaking the title mid-token where the
+   * public page keeps it whole. Safe to normalise because every field is
+   * edited in the sidebar and nothing in here is contenteditable. Parity
+   * comes from STATING the value, not from which value. */
+  white-space: normal;
+  /* The block is its own container, so the two-column placements can collapse
+   * on a narrow CANVAS COLUMN rather than on a wide viewport — the canvas
+   * column and the published page are different widths at the same viewport,
+   * and a media query would get the canvas wrong. Named, so no other add-on's
+   * unnamed `@container` query resolves against us.
+   *
+   * The cost of being the container is that no rule below can query `.promo`
+   * to change `.promo`'s own template — a container cannot query itself. The
+   * collapse is therefore expressed on the CHILDREN, which span every track
+   * instead of the parent dropping one. */
+  container: promo / inline-size;
+}
+
+/* Long words and wide media must not push a track open; `1fr` alone is
+ * `minmax(auto, 1fr)` and would. */
+.promo > * {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ── placement ──────────────────────────────────────────────────────────
+ *
+ * `has--align--<value>` is emitted ALWAYS and carries the EFFECTIVE placement
+ * (ticket 17 rule 1), so there is one selector family here and no
+ * image-presence class anywhere. An image-less promo always resolves to
+ * `center`, which is why `left` / `right` can assume two children.
+ */
+
+.promo.has--align--center {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Centring the copy is part of the placement switch, not a seam axis — the
+ * switch is a deliberate non-property (ticket 04): wanting a different one
+ * means wanting a different block. */
+.promo.has--align--center > .promo-copy {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.promo.has--align--left,
+.promo.has--align--right {
+  align-items: center;
+}
+
+/* `--promo-image-width` is a grid TRACK, so `1fr`, `22rem` and `40%` all
+ * work and `1fr` gives equal columns. It always names the image's track,
+ * which is why `right` reverses the template rather than the values. */
+.promo.has--align--left {
+  grid-template-columns: var(--promo-image-width, 1fr) 1fr;
+}
+
+.promo.has--align--right {
+  grid-template-columns: 1fr var(--promo-image-width, 1fr);
+}
+
+.promo.has--align--right > .promo-image {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.promo.has--align--right > .promo-copy {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* Narrow: both children span every track and auto-place into their own rows,
+ * which stacks them image-above-copy exactly as `center` does. Written at
+ * (0,3,0) to match the wide `right` rules above — a (0,2,0) `.promo > *`
+ * spelling would silently lose to them and the collapse would only work on
+ * one of the two placements. */
+@container promo (max-width: 34rem) {
+  .promo.has--align--left > .promo-image,
+  .promo.has--align--left > .promo-copy,
+  .promo.has--align--right > .promo-image,
+  .promo.has--align--right > .promo-copy {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+/* ── the image ──────────────────────────────────────────────────────────
+ *
+ * `<picture class="promo-image">` + `<img>` on both surfaces, always, so
+ * ticket 09's `image_source()` scales-or-no-scales branch is invisible here.
+ * There is no wrapper box: the ratio goes on the `<img>` and the width is the
+ * grid track above.
+ *
+ * The server `<img>` carries intrinsic `width`/`height` when the image
+ * resolved to in-site scales and the canvas's never does (ticket 09), so the
+ * size is STATED here rather than leant on — otherwise the two surfaces would
+ * differ on exactly the images that have scales.
+ */
+
+.promo .promo-image {
   display: block;
-  padding: var(--promo-padding-block, 2rem) var(--promo-padding-inline, 1.5rem);
+}
+
+.promo .promo-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* `auto` and never a ratio: forcing one would crop the author's image by
+   * default. `object-fit` is inert until a theme sets a ratio, and is what
+   * makes that setting behave when it does. */
+  aspect-ratio: var(--promo-image-ratio, auto);
+  object-fit: cover;
+  border-radius: var(--promo-image-radius, 0);
+}
+
+/* ── the copy ───────────────────────────────────────────────────────────── */
+
+.promo .promo-copy {
+  display: flex;
+  flex-direction: column;
+  /* The rhythm WITHIN the copy stack — a separate axis from `--promo-gap`, so
+   * a theme can tighten the stack without also narrowing the columns. */
+  gap: var(--promo-flow, 0.75rem);
+  /* Forced, not optional: reference case A is `center` at `blockWidth: full`,
+   * and without a measure the copy runs the whole bleed. */
+  max-width: var(--promo-measure, 60ch);
+}
+
+/* Zeroing these margins is a PARITY statement, not a look choice. Barceloneta
+ * gives `h2` and `p` their own margins; Aurora's Tailwind preflight zeroes
+ * them. Left alone, the same promo would be spaced differently in the two
+ * hosts, and inside Blicca the canvas and the published page would disagree —
+ * which is the one thing this sheet exists to prevent. `--promo-flow` is the
+ * handle that gives the rhythm back. */
+.promo .promo-kicker,
+.promo .promo-title,
+.promo .promo-description {
+  margin: 0;
+}
+
+/* Type is STATED rather than inherited (ticket 04): Aurora's preflight resets
+ * headings to `inherit`, so a title with no stated size renders as one of
+ * three identical lines. Size only — no weight, no leading, no transform.
+ * Each of those would be scope-locked with no property to recover it, and
+ * ticket 04's list is closed. */
+.promo .promo-kicker {
+  font-size: var(--promo-kicker-size, 0.875rem);
+  color: var(--promo-kicker-color, currentColor);
+}
+
+.promo .promo-title {
+  font-size: var(--promo-title-size, 1.75rem);
+}
+
+.promo .promo-description {
+  font-size: var(--promo-description-size, 1rem);
+}
+
+/* ── the actions ────────────────────────────────────────────────────────
+ *
+ * No slot class exists: `primary` and `secondary` name appearance, not order
+ * (ticket 17), and DOM order gives `:first-child` to anyone who needs
+ * position. The variant classes carry the whole of the appearance.
+ */
+
+.promo .promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* Deliberately the copy rhythm and not a literal of its own: the action row
+   * IS part of the copy stack, and a theme that tightens the stack expects the
+   * row to tighten with it. Documented in the README's `--promo-flow` row. */
+  gap: var(--promo-flow, 0.75rem);
+}
+
+.promo.has--align--center .promo-actions {
+  justify-content: center;
+}
+
+/* The base, then the variants. Both classes sit on the same anchor and both
+ * selectors are (0,2,0), so SOURCE ORDER is what makes the variants win —
+ * keep them below this rule. */
+.promo .promo-cta {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.promo .promo-cta-link {
+  color: var(--promo-link-color, currentColor);
+  text-decoration: underline;
+}
+
+/* The CTA defaults are CSS SYSTEM COLOURS. `CanvasText` on `Canvas` is a
+ * guaranteed-contrast pair on any ground, follows the reader's light/dark
+ * preference, and reads as NOT YET BRANDED rather than as a colour we chose —
+ * the contrast guarantee arrives free instead of being asserted, which matters
+ * because this block has no measured contrast suite. */
+.promo .promo-cta-button {
+  padding: 0.625rem 1.25rem;
+  color: var(--promo-cta-fg, Canvas);
+  background: var(--promo-cta-bg, CanvasText);
+  border: var(--promo-cta-border, none);
+  border-radius: var(--promo-cta-radius, 0.375rem);
+}
+
+/* Derived from whatever the theme set: a theme that sets only the fill would
+ * otherwise get a dead button, and this keeps the hover step correct without
+ * the theme having to name it.
+ *
+ * MIXED TOWARDS THE BUTTON'S OWN INK, not towards `black`. Ticket 04 published
+ * the `black` spelling and it is dead on arrival for the DEFAULT button:
+ * `CanvasText` already IS black in a light scheme, so `color-mix(in oklab,
+ * CanvasText 88%, black)` computes to `oklab(0 0 0)` — the fill exactly, and an
+ * unthemed promo has no hover feedback at all. Measured on the running site,
+ * which is what this correction rests on. Mixing towards `--promo-cta-fg`
+ * cannot degenerate, because the ink contrasts with the fill BY CONSTRUCTION:
+ * the default steps L 0 -> 0.12, and the copper case ticket 04 designed for
+ * still darkens (L 0.72 -> 0.6552 against the published spelling's 0.6336), so
+ * the intent survives and only the degenerate case is repaired. */
+.promo .promo-cta-button:hover {
+  background: var(
+    --promo-cta-hover-bg,
+    color-mix(
+      in oklab,
+      var(--promo-cta-bg, CanvasText) 88%,
+      var(--promo-cta-fg, Canvas)
+    )
+  );
+}
+
+/* ── the card link ──────────────────────────────────────────────────────
+ *
+ * EXCEPTION TO DESCENT (rule 3): the card link WRAPS the root, so it cannot
+ * descend from it. Ticket 17 rule 4 chose the wrapper over a root whose tag
+ * changes and over a stretched-link overlay — the overlay would make this
+ * stylesheet load-bearing for clickability, which is the one thing ticket 04
+ * hands themes power over.
+ *
+ * Neutralising the UA link colour is the load-bearing declaration here:
+ * without it the anchor tints the ENTIRE promo blue. With the default
+ * `currentColor` it simply inherits the surrounding ink.
+ */
+
+.promo-cardlink {
+  display: block;
+  color: var(--promo-link-color, currentColor);
+  text-decoration: none;
+}
+
+/* The affordance, spelled without an attribute selector so it behaves
+ * identically on both surfaces (rule 4). `:hover` matches an anchor with no
+ * `href`, which is what shows the author in the canvas that the whole card is
+ * a link. */
+.promo-cardlink:hover .promo-title {
+  text-decoration: underline;
+}
+
+/* ── the editor's own chrome ────────────────────────────────────────────
+ *
+ * EXCEPTION TO DESCENT (rule 3), and the second one: ticket 08 renders these
+ * OUTSIDE the block root, because ticket 17 rule 3 keeps that root empty. They
+ * are reachable from the scope root instead, as `derico-hero`'s
+ * `.derico-hero-incomplete` is.
+ *
+ * Dressed deliberately, and with LITERALS ONLY — never a `--promo-*`. They are
+ * the editor talking to the author about what it dropped, not part of the
+ * block's published surface, and a theme should not be able to restyle a nag
+ * into invisibility. Unstyled they are plain paragraphs sitting directly under
+ * the preview, which an author reads as block content.
+ *
+ * They are undressed in Aurora proper, where none of the three scope roots
+ * exists — the residual delivery gap ticket 17 flagged to this ticket and to
+ * ticket 15. Legible either way: they are prose, not icons.
+ */
+
+.promo-incomplete,
+.promo-notice {
+  margin-block: 0.5rem 0;
+  padding-inline-start: 0.5rem;
+  border-inline-start: 2px solid;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  /* A system colour again — quiet on any ground, in either colour scheme,
+   * with no token to import. */
+  color: GrayText;
 }

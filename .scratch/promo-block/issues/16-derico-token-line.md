@@ -55,3 +55,52 @@ stated rather than assumed.
 Spacing, border, radius and image properties are deliberately left at their
 literal defaults unless the reference cases prove otherwise — reach for
 `--plone-*` here only, where Clara is guaranteed present.
+
+
+## Notes from [ticket 11](11-build-the-stylesheet.md) (2026-09-03)
+
+The seam is built and every default is verified on the running site, so this
+ticket now has a real target.
+
+- **`--promo-cta-hover-bg`'s default changed.** It is now
+  `color-mix(in oklab, var(--promo-cta-bg, CanvasText) 88%, var(--promo-cta-fg, Canvas))`
+  — mixed towards the button's own ink, because the published `black` spelling
+  computed to the fill exactly on an unthemed host. The mapping above is
+  unaffected: this ticket sets `--derico-copper-hover` explicitly and never
+  reaches the default. See ticket 04's correction note.
+- **There is no `--promo-cta-padding`.** The button's `0.625rem 1.25rem` is a
+  literal. If derico's copper button wants different metrics, that is ticket
+  04's list growing by one — a minor addition, permitted because the axis
+  already exists in the markup — and **not** a rule in the theme. Ticket 11
+  flagged it rather than taking it.
+- **Contrast has a new baseline to beat.** The unthemed button is `CanvasText`
+  on `Canvas`, whose contrast guarantee arrives free. Copper on
+  `--derico-on-copper` has to be measured the way `derico.css` measures the
+  rest, and a promo on a tinted band is a different ground than the page.
+- **Do not set `--promo-*` on `.promo`.** Set them where they inherit in.
+  Ticket 11's lockstep test covers the block's own sheet and cannot see this
+  repository, so nothing automated catches it here.
+
+
+## Notes from [ticket 13](13-verify-reference-case-imageless.md) (2026-09-03)
+
+Reference case A was reproduced live and judged against the real pagelet, so the
+token line now has measured evidence rather than an intention.
+
+- **Three properties close the whole gap** between an unthemed promo and
+  derico's contact band: `--promo-title-size` (28px default against the band's
+  much larger heading), `--promo-cta-bg` and `--promo-cta-fg`. Setting them on
+  `:root` on the running site turned the promo into a derico band in one pass;
+  spacing, radius, measure and flow needed nothing.
+- **On the `dark` background slot only the button's FILL is reachable.**
+  `--promo-cta-fg` is flattened to the band's foreground by Blicca's
+  `.block.has--backgroundColor--dark :where(*) { color: inherit }` whatever this
+  ticket sets, so a copper button on a dark band gets the band's light ink and
+  not `--derico-on-copper`. Measure the copper against **that** ink, not the one
+  you set. On the light and `accent` slots the property works normally.
+- **The real band is a LIGHT ground**, so a promo standing in for it wants the
+  light or `accent` slot rather than `dark`. Nothing to set — it is the author's
+  choice in the sidebar — but it is what the contrast pass should assume.
+- The band's ground comes from the theme's own `--aurora-block-bg-dark`
+  (`oklch(0.36 0.065 215.55)` live), which derico already sets. That is the
+  cross-block vocabulary this ticket must not duplicate as a `--promo-*`.
