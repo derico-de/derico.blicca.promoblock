@@ -29,8 +29,14 @@
     "react": "^18 || ^19"
   },
   "devDependencies": {
+    "@plone/blocks": "1.0.0-alpha.11",
+    "@plone/cmsui": "1.0.0-alpha.4",
+    "@plone/components": "5.0.0-alpha.1",
     "@plone/helpers": "2.0.0-alpha.7",
+    "@plone/layout": "1.0.0-alpha.9",
+    "@plone/plate": "1.0.0-alpha.9",
     "@plone/registry": "4.0.0-alpha.1",
+    "@plone/theming": "1.0.0-alpha.6",
     "@testing-library/react": "^16.1.0",
     "@types/node": "^26.4.0",
     "@types/react": "^19.0.0",

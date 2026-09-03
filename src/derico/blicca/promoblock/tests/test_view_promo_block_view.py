@@ -1,7 +1,7 @@
 """The Promo's public renderer — registration, and the anatomy it must emit.
 
 The headline test is ``TestAnatomy``: every case in ``tests/anatomy-cases.json``
-at the package root, the same 24 hand-authored cases
+at the package root, the same 25 hand-authored cases
 ``bundle-src/test/promo-anatomy.test.tsx`` holds the React renderer to. Ticket
 17 exists so the two renderers cannot diverge; this file and that one are how
 the two halves of that promise are kept.
@@ -9,7 +9,7 @@ the two halves of that promise are kept.
 The fixture is read twice over, the same way the vitest suite reads it:
 
 - **Exactly**, up to attribute order, wherever the two renderers are expected
-  to emit identical attributes — which is 23 of the 24 cases.
+  to emit identical attributes — which is 24 of the 25 cases.
 - **As a skeleton** — the markup with every attribute but ``class`` removed,
   text kept — for every case without exception. That is the cross-renderer
   contract, and it is what lets this renderer carry a real resolution ladder in

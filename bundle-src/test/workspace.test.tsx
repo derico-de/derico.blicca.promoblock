@@ -15,6 +15,7 @@ import {
   UpstreamAlignWidget,
   UPSTREAM_WIDTHS,
   UpstreamImageWidget,
+  choicesWidgetOf,
   installUpstreamRegistry,
 } from './upstream-registry';
 
@@ -61,9 +62,10 @@ describe('the upstream registry fixture', () => {
   });
 
   it('registers no `choices` widget — it is Blicca-only', () => {
-    for (const key of BLICCA_ONLY_REGISTRATIONS.widgetKeys) {
-      expect(upstream.getWidget(key)).toBeUndefined();
-    }
+    // Via `choicesWidgetOf`: `getWidget('choices')` is blind to the way this
+    // widget is registered and returns undefined either way (ticket 15).
+    expect(BLICCA_ONLY_REGISTRATIONS.widgetKeys).toEqual(['choices']);
+    expect(choicesWidgetOf(upstream)).toBeUndefined();
   });
 
   it('registers blockWidth and only blockWidth as a style field', () => {

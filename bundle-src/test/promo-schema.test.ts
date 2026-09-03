@@ -29,7 +29,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import PromoSchema from '../src/promo/schema';
-import { installUpstreamRegistry } from './upstream-registry';
+import { choicesWidgetOf, installUpstreamRegistry } from './upstream-registry';
 
 const upstream = installUpstreamRegistry(config as any);
 
@@ -172,7 +172,7 @@ describe('properties', () => {
       expect(properties[field].widget).toBe('promo_select');
       // `widget` outranks `choices` in Field.tsx, and `choices` is
       // Blicca-only — leaning on it would degrade to a text input in Aurora.
-      expect(upstream.getWidget('choices')).toBeUndefined();
+      expect(choicesWidgetOf(upstream)).toBeUndefined();
     }
   });
 
@@ -200,13 +200,15 @@ describe('properties', () => {
  * would have caught the failure the ticket warns about, a reference case
  * reproduced only by writing JSON the sidebar cannot offer.
  */
+/** The shared fixture, read once: both reference-case blocks below read it. */
+const CASES: { name: string; data: Record<string, unknown> }[] = JSON.parse(
+  readFileSync(
+    path.join(path.resolve(import.meta.dirname, '..', '..'), 'tests', 'anatomy-cases.json'),
+    'utf8',
+  ),
+).cases;
+
 describe('reference case A — the contact band (ticket 13)', () => {
-  const CASES: { name: string; data: Record<string, unknown> }[] = JSON.parse(
-    readFileSync(
-      path.join(path.resolve(import.meta.dirname, '..', '..'), 'tests', 'anatomy-cases.json'),
-      'utf8',
-    ),
-  ).cases;
   const band = CASES.find((entry) => entry.name === 'reference-case-the-contact-band');
 
   it('is in the shared fixture, which is what the rest of this block reads', () => {
@@ -247,5 +249,71 @@ describe('reference case A — the contact band (ticket 13)', () => {
     // that gap; two grounds for one block is the defect.
     const offered = PromoSchema({ formData: band!.data }).fieldsets.flatMap((f) => f.fields);
     expect(offered).not.toContain('backgroundColor');
+  });
+});
+
+/**
+ * Reference case B — a picture beside the copy (ticket 14).
+ *
+ * The mirror of case A, and the reason both are worth stating: A is the promo
+ * with BOTH conditionals closed, B the promo with both OPEN. Between them the
+ * sidebar's whole conditional surface is exercised against a node someone
+ * actually authored, rather than against the synthetic `STATES` above.
+ *
+ * The other half of the mirror is about hosts. Case A cannot get its dark
+ * ground in Aurora proper, because the ground is a host control. Case B carries
+ * no host-only field at all, so it is offered whole against the upstream
+ * registry — which is as close as this suite gets to saying the promo the map
+ * insists on works in both hosts.
+ */
+describe('reference case B — the picture beside the copy (ticket 14)', () => {
+  const promo = CASES.find((entry) => entry.name === 'reference-case-image-beside-the-copy');
+
+  it('is in the shared fixture, which is what the rest of this block reads', () => {
+    expect(promo, 'reference-case-image-beside-the-copy missing from the fixture').toBeDefined();
+  });
+
+  it('opens both conditionals, which is what makes it case B', () => {
+    const offered = PromoSchema({ formData: promo!.data }).fieldsets.flatMap((f) => f.fields);
+    // A picture is set, so the placement control appears — the field case A
+    // never sees, and the one this reference case exists to exercise.
+    expect(offered).toContain('align');
+    // Neither action label is typed, so the card link is offered: the click
+    // rule as a sidebar affordance. This is the state case A cannot reach.
+    expect(offered).toContain('card_link');
+    expect(Object.keys(promo!.data).filter((key) => key.endsWith('_label'))).toEqual([]);
+  });
+
+  it('is offered field for field, so nothing in it is JSON only', () => {
+    const offered = PromoSchema({ formData: promo!.data }).fieldsets.flatMap((f) => f.fields);
+    for (const field of Object.keys(promo!.data)) {
+      // `image_url` is ticket 10's injection, handled below.
+      if (field === 'image_url') continue;
+      expect(offered, field).toContain(field);
+    }
+  });
+
+  it('offers no derived key, so an author can never edit one', () => {
+    // The fixture's case carries `image_url` because that is what the two
+    // RENDERERS read. It is stamped by the serializer on every load and
+    // stripped by the deserializer on every save, so a sidebar field for it
+    // would let an author type a value the next save silently discards.
+    const offered = PromoSchema({ formData: promo!.data }).fieldsets.flatMap((f) => f.fields);
+    for (const derived of ['image_url', 'image_scales', 'image_field']) {
+      expect(offered, derived).not.toContain(derived);
+    }
+  });
+
+  it('needs nothing the upstream registry lacks — unlike case A', () => {
+    // Mounted against the upstream fixture already (see the file header), so
+    // this is the native-Aurora claim: every field case B authors is offered,
+    // including `blockWidth`, which is `@plone/blocks`' own style field.
+    const offered = PromoSchema({ formData: promo!.data }).fieldsets.flatMap((f) => f.fields);
+    expect(offered).toContain('blockWidth');
+    expect(Object.keys(promo!.data)).not.toContain('backgroundColor');
+    for (const field of Object.keys(promo!.data)) {
+      if (field === 'image_url') continue;
+      expect(offered, `${field} is not authorable in Aurora proper`).toContain(field);
+    }
   });
 });

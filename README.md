@@ -22,7 +22,7 @@ The Promo renders from two renderers that emit the **same anatomy**:
 
 One scope-wrapped stylesheet dresses both. An element added to one renderer
 without a peer in the other is a bug in both, and the fixture suite in
-`tests/anatomy-cases.json` — 24 states, read by the Python and the vitest
+`tests/anatomy-cases.json` — 25 states, read by the Python and the vitest
 suites alike — is what says so.
 
 ### Anatomy
@@ -52,6 +52,91 @@ is `center` whatever was stored.
 `block`, `block-promo`, `has--block-width--<value>` and
 `has--backgroundColor--<value>` arrive from the host on the wrapper **outside**
 this block's root. The block never emits them.
+
+### Choosing the picture
+
+The `image` field is deliberately named `image` so field-id resolution hands it
+**the host's own image widget** — registered in Blicca and in Aurora proper,
+upload included. Owning the name means inheriting the widget's shape, and two
+parts of that shape surprise people:
+
+- **It carries no label and shows no current selection.** In the sidebar the
+  field is a bare "Select or upload" button between Description and Image
+  placement; the schema's `title` never reaches it, and the widget declares a
+  `value` prop it never reads, so an author cannot see *which* picture is
+  chosen — only the canvas says. This is the widget's own shape in both hosts,
+  identical for every block that takes an image, so the Promo leaves it alone:
+  wrapping it would mean re-implementing the upload, which is the one thing
+  naming the field `image` was chosen to avoid. Report it upstream, not here.
+- **A freshly picked picture does not appear until the next load.** The picker
+  writes `image`; the derived `image_url` the preview reads is stamped on
+  **load** by the serializer, so a promo that already had a picture keeps
+  showing the old one until save and reload. A promo that had none previews at
+  once, through the reference. Both are correct on the published page from the
+  first save.
+
+### Where the two surfaces really differ
+
+Two, both measured on a running site, and neither of them cosmetic drift:
+
+1. **A picture whose target was deleted.** The server sees no `image_url` and
+   draws the no-image layout — no `<picture>`, and `has--align--center`, because
+   a promo with nothing to place has no placement. The canvas cannot tell that
+   apart from a picture chosen one second ago, so it keeps the placement and
+   previews the reference, which 404s. The page a visitor gets is always the
+   server's.
+2. **The title's weight**, for the reason under "Not themeable, on purpose".
+
+## What "works in Aurora" means here
+
+The block is **built against upstream-registered widgets and its own**, and
+every field it declares resolves in Aurora to the widget it was designed for.
+That is the claim — deliberately narrower than "verified in Aurora".
+
+What is actually exercised, in `bundle-src/test/aurora-harness.test.tsx`: the
+registry Aurora builds, from the packages Aurora ships
+(`@plone/theming`, `@plone/plate`, `@plone/blocks`, `@plone/layout`,
+`@plone/cmsui`), installed in the host's own order, at the versions this host
+pins — and with **none of the Blicca wrapper's overrides**. The block's
+`install`, `edit` and `view` run on top of it. The registry differences are
+what a promo can actually trip over, so they are what is covered: `align`
+resolves to cmsui's own `AlignWidget` and `image` to its `ImageWidget`
+(asserted by object identity, not by name), no field falls through to the
+default single-line input except the four that are meant to, and the promo
+joins Aurora's four blocks without displacing the teaser.
+
+What is **not** covered, stated plainly:
+
+- **No Seven app is stood up.** That needs VHM domain-root serving and a
+  monorepo source integration, and the runtime add-on loader this block is
+  delivered by is a Blicca mechanism Aurora has no counterpart for. So nothing
+  here proves the block renders in a real Aurora page — only that it resolves
+  and renders against the registry Aurora builds.
+- **Two upstream widgets cannot be mounted outside Aurora's edit route.**
+  cmsui's `ImageWidget` calls `useFetcher` and its `ObjectBrowserWidget` calls
+  `useLoaderData`; both throw in any harness. They *resolve* here, and in
+  Aurora they mount inside the edit route, where Aurora's own teaser picks its
+  target the same way. `promo_link` therefore looks the picker up through
+  `config.getWidget` rather than importing one, and disappears entirely where
+  no picker is registered.
+- **Nothing dresses the block there.** The stylesheet is `@scope`-wrapped to
+  `.aurora-editor`, `.aurora-editor-portal` and `.aurora-blocks-view` — roots
+  that exist in Blicca and nowhere in Aurora proper. A headless suite can hold
+  reachability (every selector matches markup a renderer emits) but not
+  appearance. The editor's `.promo-incomplete` / `.promo-notice` chrome is
+  undressed there too, which is survivable only because it is prose.
+- **The title is body weight in Aurora** and 600 under Barceloneta, because
+  the seam states type size only and Aurora's preflight resets headings. See
+  "Not themeable, on purpose".
+
+Two divergences were predicted for Aurora and both turned out to be closed by
+design rather than merely tolerated — pinned as tests so a refactor cannot
+quietly reopen them. A field leaning on `choices` would degrade to a text
+input, because only Blicca registers that widget; the two fields that declare
+`choices` carry an explicit `widget` instead, which outranks it. And a
+Blicca-stored `../resolveuid/<UID>` would reach the DOM as a raw `src` through
+upstream's `getPreviewSrc`; the block never calls it, resolving previews with
+its own ladder instead.
 
 ## Theming: the seam
 
@@ -174,8 +259,9 @@ the wrapper, correctly full-bleed.
   quietly unrecoverable. The visible consequence, measured on a running site:
   the title is the theme's `h2` weight on the published page (600 under
   Barceloneta) and the editor's body weight in the canvas, because Plate's
-  preflight flattens headings. It is the one place the two surfaces do not look
-  identical, and it is the price of not scope-locking the weight.
+  preflight flattens headings. It is the price of not scope-locking the
+  weight, and one of the two places the surfaces do not look identical — see
+  "Where the two surfaces really differ".
 
 ### Where the two-column placements collapse
 
@@ -212,6 +298,14 @@ pnpm test
 pnpm typecheck
 pnpm build        # writes ../src/derico/blicca/promoblock/static/promo-block.{js,css}
 ```
+
+The five Aurora installers are **devDependencies**, so the test registry is the
+one Aurora actually builds rather than a transcription of it (see "What 'works
+in Aurora' means here"). They cost nothing at runtime — the shipped bundle
+imports four modules, all of them promised externals, and a test fails if that
+ever stops being true. They ship raw TypeScript and do not typecheck outside
+Volto's monorepo, so `tsconfig.json` maps them to `test/aurora-packages.d.ts`
+for **type** resolution only; vitest still loads the real packages.
 
 ```bash
 # Python: run from the assembly repo's root environment

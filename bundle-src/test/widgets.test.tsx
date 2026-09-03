@@ -5,7 +5,11 @@
  * The fixture is the point. `test/upstream-registry.ts` registers what
  * Aurora registers and nothing the Blicca wrapper adds, so a widget that
  * only works because `choices` or a substituted `object_browser` happened to
- * be there fails here rather than in Aurora proper (ticket 02).
+ * be there fails here rather than in Aurora proper (ticket 02). Since
+ * ticket 15 it does that by running Aurora's own installers, so the widgets
+ * resolved below are cmsui's actual objects — which is why the two picker
+ * tests now supply a stand-in: upstream's ObjectBrowserWidget needs the edit
+ * route's loader data and throws in any harness.
  *
  * Every mount goes through `renderField`, which reproduces the prop envelope
  * `BlockSettingsFormRenderer` + `Field.tsx` actually build — the whole schema
@@ -26,7 +30,12 @@ import {
   PromoTextareaWidget,
   storedLinkFor,
 } from '../src/widgets';
-import { installUpstreamRegistry } from './upstream-registry';
+import {
+  installUpstreamRegistry,
+  UpstreamAlignWidget,
+  UpstreamImageWidget,
+  choicesWidgetOf,
+} from './upstream-registry';
 
 const upstream = installUpstreamRegistry(config as any);
 install(upstream);
@@ -78,16 +87,24 @@ describe('registration', () => {
 
   it('claims no generic key — the ecosystem-wide fix is not ours to make', () => {
     // `textarea` and `select` stay unimplemented; `choices` stays Blicca-only.
-    for (const key of ['textarea', 'select', 'choices', 'color_picker']) {
+    for (const key of ['textarea', 'select', 'color_picker']) {
       expect(upstream.getWidget(key)).toBeUndefined();
     }
+    // `choices` needs the other access path — `getWidget` cannot see it.
+    expect(choicesWidgetOf(upstream)).toBeUndefined();
   });
 
   it('leaves the host widgets the schema leans on untouched', () => {
     // `align` and `image` are the two deliberate host-widget exceptions
     // (CONTEXT.md); registering ours must not have shadowed either.
-    expect((upstream.getWidget('align') as any).displayName).toBe('AlignWidget');
-    expect((upstream.getWidget('image') as any).displayName).toBe('ImageWidget');
+    //
+    // Asserted by IDENTITY, not by name: since ticket 15 the fixture runs
+    // cmsui's own installer, so these are the very objects Aurora resolves,
+    // and `toBe` says so where a `displayName` string only described one.
+    // (The real components carry no `displayName` at all — the placeholders
+    // they replaced were the only reason that spelling ever passed.)
+    expect(upstream.getWidget('align')).toBe(UpstreamAlignWidget);
+    expect(upstream.getWidget('image')).toBe(UpstreamImageWidget);
   });
 });
 
@@ -237,16 +254,44 @@ describe('promo_link', () => {
   });
 
   it('mounts the host picker only once Browse is pressed', () => {
-    renderField(PromoLinkWidget, property);
-    const browse = screen.getByRole('button', { name: /browse/i });
-    expect(browse.getAttribute('aria-expanded')).toBe('false');
-    fireEvent.click(browse);
-    expect(browse.getAttribute('aria-expanded')).toBe('true');
+    // Through a PROBE picker, not the host's own. Since ticket 15 the
+    // registered `object_browser` is cmsui's real ObjectBrowserWidget, and
+    // it calls `useLoaderData()` from Aurora's edit route — it throws the
+    // moment it is mounted anywhere else, harness included (ADR 0009 records
+    // the same fact as Blicca's reason for substituting it). That is a
+    // property of upstream's widget, pinned on its own in
+    // `aurora-harness.test.tsx`; what THIS test is about is our widget
+    // mounting whatever is registered lazily, so it supplies something
+    // mountable and watches when it appears.
+    let mounted = 0;
+    const Probe: ComponentType<any> = () => {
+      mounted += 1;
+      return null;
+    };
+    upstream.registerWidget({
+      key: 'widget',
+      definition: { object_browser: Probe },
+    });
+    try {
+      renderField(PromoLinkWidget, property);
+      const browse = screen.getByRole('button', { name: /browse/i });
+      expect(browse.getAttribute('aria-expanded')).toBe('false');
+      expect(mounted).toBe(0);
+      fireEvent.click(browse);
+      expect(browse.getAttribute('aria-expanded')).toBe('true');
+      expect(mounted).toBeGreaterThan(0);
+    } finally {
+      upstream.registerWidget({
+        key: 'widget',
+        definition: { object_browser: UpstreamObjectBrowser },
+      });
+    }
   });
 
   it('writes the picked item into the string and closes the picker', () => {
-    // The fixture's object_browser is a placeholder that renders null, so
-    // drive the contract both hosts share — onChange(selected[]) — directly.
+    // Upstream's real picker cannot be mounted outside Aurora's edit route
+    // (see above), so drive the contract both hosts share directly:
+    // onChange(selected[]), which is the whole of what this widget consumes.
     const onChange = vi.fn();
     let picked: ((selected: unknown[]) => void) | undefined;
     const Capture: ComponentType<any> = (props: any) => {

@@ -435,10 +435,77 @@ native-Aurora path has been exercised, not that a spec exists for it.
   host image widget renders **unlabelled** (ticket 14), and the three-property
   token line with its dark-slot caveat (ticket 16).
 
+- [Verify: reference case B — image beside the copy](issues/14-verify-reference-case-image-left.md)
+  — **The picture path is whole; the image FIELD is the host's, in two ways.**
+  Both placements survive as authored (case A is always `center`, so only a case
+  with a picture can show this), the container-query collapse fires for `left`
+  AND `right` at 538.5px inline, a picked reference and an **uploaded** file both
+  land and round-trip with scales, and a deleted target degrades to the centred
+  no-image layout without throwing. Held by the fixture's 25th case — the one
+  combination nothing else reached, a card link with a picture and no action
+  labels — and by `tests/test_reference_case_image.py`, the only place ticket
+  10's transformer and a renderer run in ONE call (unregistering the serializer
+  fails 12 of its 23). **Ticket 13's unlabelled image field is worse than
+  reported and is not ours**: `BliccaImageWidget` declares a `value` prop it
+  never reads, so the control is write-only — no label, and no sign of which
+  picture is chosen — identically for every image field in both hosts; decided
+  to report upstream rather than wrap it, which would cost the host's upload.
+  And the README's "the title's weight is the only place the surfaces differ" is
+  **corrected**: a replaced picture is stale in the canvas until save, and a
+  deleted one diverges structurally (the page centres, the canvas keeps the
+  placement and 404s). Both documented; the decision they raise is ticket 19.
+
+- [Verify: the block works in Aurora proper](issues/15-verify-native-aurora.md)
+  — **Exercised against the registry Aurora actually builds, and the old
+  fixture turned out to be unable to fail.** Ticket 06's choice went to the
+  **real installers**, on an argument sharper than fidelity: the assertions
+  this fixture exists for are assertions of ABSENCE (`choices`, `textarea`,
+  `select`, `backgroundColor`), and against a transcription each passes
+  *because we chose not to transcribe them* — restating the fixture's own
+  construction, unable to fail while the hypothesis is false. That hypothesis
+  is exactly ticket 02's stated risk. Cost measured, not feared: 154 → ~670
+  packages, **devDeps only**, raw-TS packages that vitest transforms with no
+  build step; the shipped artifact is byte-identical and now holds its own
+  line (four imports, all promised externals). **The finding, caught by
+  mutation and not by reading: every `choices` absence assertion in the suite
+  was vacuous.** `registerWidget` stores a bare component AS the category
+  (`widgets.choices = Component`), and `getWidget` skips it on its
+  `typeof === 'object'` guard — so `getWidget('choices')` returns `undefined`
+  whether or not it is registered, while `Field.tsx` reads `widgets.choices`
+  directly. Latent since ticket 06; fixed at all four sites behind
+  `choicesWidgetOf()`. **A boundary the placeholders had hidden:** cmsui's
+  `ImageWidget` (`useFetcher`) and `ObjectBrowserWidget` (`useLoaderData`)
+  cannot be MOUNTED outside Aurora's edit route — ADR 0009 recorded only the
+  picker half, the image half is new — so two of the four upstream
+  resolutions are asserted rather than exercised, and `widgets.test.tsx`'s
+  picker tests now supply a stand-in. Ticket 02's two predicted divergences
+  are both **closed by design** (03's explicit `widget` outranks `choices`;
+  08's own ladder never calls `getPreviewSrc`) and pinned so a refactor cannot
+  reopen them. Newly assertable because the installers are real: the promo
+  joins Aurora's four blocks **without displacing the teaser**, and `view`
+  reads nothing from the registry — strip every registration and the markup is
+  byte-identical, which is why the two hosts cannot diverge there. Incidental:
+  `@plone/registry`'s config is **frozen**; the hygiene regex ignored bare
+  side-effect imports. Cost that landed: `tsc` follows the installers into raw
+  source that does not compile outside Volto's monorepo, so eight specifiers
+  are `paths`-mapped to a documented shim for **type** resolution only. The
+  README states the bounded claim — *built against upstream-registered widgets
+  and its own*, **not** *verified in Aurora* — and absorbs ticket 11's two
+  notes.
+
 ## Not yet specified
 
-<!-- empty: the property surface — the last patch of fog — graduated into
-     ticket 04 and is now settled. Nothing in scope remains unspecifiable. -->
+- **Whether the title needs a twentieth property in Aurora.** Ticket 11 found
+  the title is weight 600 under Barceloneta and **body weight in Aurora** —
+  the seam states type SIZE only, and Aurora's Tailwind preflight resets
+  headings — so 1.75rem at body weight is the whole of the title's
+  distinction there. The fix, if it is one, is `--promo-title-weight`, which
+  ticket 04's growth policy allows as a minor addition because the axis
+  already exists. It stays fog rather than a ticket because the question is
+  *does it read as broken*, and [ticket 15](issues/15-verify-native-aurora.md)
+  established that nothing here can see Aurora render: no Seven app is stood
+  up, and that is out of scope below. Graduates the first time someone looks
+  at a real Aurora page.
 
 ## Out of scope
 
@@ -467,5 +534,13 @@ native-Aurora path has been exercised, not that a spec exists for it.
 - **Fixing `textarea` for the whole ecosystem.** Registering the generic key
   would repair Aurora's own teaser description everywhere. Good idea, wrong
   vehicle — upstream patch, not a side effect of installing this block.
+- **Labelling the host's image widget, or showing its current value.** Found by
+  [ticket 14](issues/14-verify-reference-case-image-left.md): `BliccaImageWidget`
+  declares a `value` prop and never reads it, and the sidebar drops the schema's
+  title, so the control is write-only and unnamed — in both hosts, for every
+  block that takes an image. Wrapping it in a `promo_image` would cost the
+  host's upload, which is the whole reason the field is named `image`. Upstream
+  report, not a promo change — the same shape as the `textarea` bullet above.
+
 - **Fixing `path_of`.** Four existing call sites, one an external-video URL.
   This block screens its own links; changing the shared helper is Blicca's call.

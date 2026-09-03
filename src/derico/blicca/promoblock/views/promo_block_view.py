@@ -12,7 +12,7 @@ name equals ``f"aurora-block-{PROMO_BLOCK_TYPE}"``.
 (``bundle-src/src/promo/PromoView.tsx``) and this template must emit the same
 anatomy element for element, because ONE scope-wrapped stylesheet (ticket 11)
 dresses both surfaces. Ticket 17's class table is normative for both, and
-``tests/anatomy-cases.json`` — 24 hand-authored cases at the package root — is
+``tests/anatomy-cases.json`` — 25 hand-authored cases at the package root — is
 read by this suite and the vitest one alike.
 
 The two surfaces diverge in exactly two places, both stated:

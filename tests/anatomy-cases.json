@@ -296,6 +296,23 @@
         "backgroundColor": "dark"
       },
       "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Erstgespräch vereinbaren</h2><p class=\"promo-description\">Sie schildern die Aufgabe. Wir klären gemeinsam, welcher nächste Schritt sinnvoll ist.</p><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/contact\">Kontakt</a><a class=\"promo-cta promo-cta-link\" href=\"mailto:md@derico.de\">E-Mail schreiben</a></div></div></div>"
+    },
+    {
+      "name": "reference-case-image-beside-the-copy",
+      "note": "Ticket 14, reference case B: the promo the map insists on — a picture beside the copy, `left` placement, and the ONE combination no other case reaches: both action labels empty with a card link set, so the whole card takes the click while a picture is present. Case A cannot reach it (two actions), `card-link` has no picture and no kicker, `image-left` has an action. The image value is the shape ticket 07 stores when an author picks through the Browse disclosure and ticket 10 then resolves; `image_url` is the single key both renderers read. Evidence, never specification.",
+      "data": {
+        "head_title": "Open Source",
+        "title": "Plone für langlebige Anwendungen",
+        "description": "Ein CMS, das seit über zwanzig Jahren migrierbar bleibt.",
+        "image": "../resolveuid/8f2c1a9e",
+        "image_url": "/pic.jpg/@@images/image/large",
+        "align": "left",
+        "card_link": "/leistungen/plone",
+        "cta_primary_variant": "button",
+        "cta_secondary_variant": "link",
+        "blockWidth": "default"
+      },
+      "html": "<a class=\"promo-cardlink\" href=\"/leistungen/plone\"><div class=\"promo has--align--left\"><picture class=\"promo-image\"><img src=\"/pic.jpg/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture><div class=\"promo-copy\"><p class=\"promo-kicker\">Open Source</p><h2 class=\"promo-title\">Plone für langlebige Anwendungen</h2><p class=\"promo-description\">Ein CMS, das seit über zwanzig Jahren migrierbar bleibt.</p></div></div></a>"
     }
   ]
 }
