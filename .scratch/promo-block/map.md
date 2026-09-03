@@ -523,6 +523,23 @@ native-Aurora path has been exercised, not that a spec exists for it.
   mutation-checking. Raised [ticket 20](issues/20-decide-promo-title-scale-axis.md):
   one title size cannot serve both a band and a card.
 
+- [Task: publish the package and pin it in `mx-prod.ini`](issues/18-publish-and-pin-mx-prod.md)
+  — **Published public, pinned, and the bootstrap path is proven.**
+  `MrTango/derico.blicca.promoblock` is public with a plain `https://` url (no
+  deploy key, no `github-deploy-*` alias); `ls-remote` confirms `main` =
+  `5d85f44`. The pin on file was **stale in a way that mattered** — `cfa654e`
+  predates the stylesheet, the derico token line and both reference cases, so a
+  deploy would have installed an **undressed** promo; re-pinned to `5d85f44`
+  alongside `plonetheme.derico` → `2b1600f` (assembly commit `9991b05`). The
+  ticket also under-stated the stakes: the theme **hard-depends** on the block
+  (`pyproject` + a `profile-…:default` dependency), so a deploy missing the
+  section fails to install **the theme**, not just the promo — now recorded in
+  the section's comment. The server has run `bootstrap.py` + `install-sources`
+  with the section present, so the header's two-step recipe for a new section is
+  a **tested** path. Residual, deliberately not a ticket: the deploy that ran
+  installed `cfa654e`, so the dressed block reaches the server on the next
+  `install-sources` — routine ops on a proven path.
+
 ## Not yet specified
 
 - **Whether the title needs a twentieth property in Aurora.** Ticket 11 found

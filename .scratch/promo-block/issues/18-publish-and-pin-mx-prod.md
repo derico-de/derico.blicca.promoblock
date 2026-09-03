@@ -1,7 +1,7 @@
 # Task: publish the package and pin it in `mx-prod.ini`
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: —
 Repo: derico.de (the assembly repo) + sources/derico.blicca.promoblock
 
@@ -60,4 +60,49 @@ Note the server also needs `python3 bootstrap.py mx-prod.ini` before
 
 ## Answer
 
-<!-- fill in -->
+**Done, and the deploy has run.** The package is published, pinned, and the
+new-section bootstrap path is proven rather than merely written down.
+
+- **Repository**: `MrTango/derico.blicca.promoblock`, **public**, plain
+  `https://` URL, no deploy key and no `github-deploy-*` Host alias. The
+  ticket's argument for public won -- the block is generic by design, derico.de
+  is its first consumer -- and it sits under `MrTango/` alongside
+  `plone.pageletlayout` and `plonetheme.clara`, not under `derico-de/`, which is
+  the org reserved for the three private repositories that need deploy keys.
+- **Pushed and verified**: `git ls-remote https://...` (no credentials needed,
+  which is itself the confirmation that public was the right call) reports
+  `refs/heads/main` = `5d85f44`. Every ticket through 16 is on the remote.
+- **Pinned**: the section is live and the stale checklist comment is gone.
+
+**The pin was stale and it mattered.** `mx-prod.ini` pinned `cfa654e`, set at
+19:04; three commits landed after it, up to 20:52. `cfa654e` predates the
+stylesheet ([ticket 11](11-build-the-stylesheet.md)), the derico token line
+([ticket 16](16-derico-token-line.md)) and both verified reference cases, so the
+pin on file would have deployed an **undressed** promo. Re-pinned to `5d85f44`;
+the same pass moved `plonetheme.derico` from `5713e16b` to `2b1600f`, which is
+the commit carrying ticket 16's `derico.css` §9. Both landed in the assembly
+repo as `9991b05`.
+
+**The stakes were worse than this ticket stated.** The ticket said a missing
+section merely breaks `uv export`, and that "dev is unaffected". True but
+under-stated: `plonetheme.derico` now **hard-depends** on the block --
+`pyproject` requires `derico.blicca.promoblock>=1.0.0a1` and the theme's default
+profile lists `profile-derico.blicca.promoblock:default` -- so a deploy without
+this source does not just skip the promo, it **fails to install the theme at
+all**. That reasoning is now recorded in the section's own comment, where the
+next person re-pinning will read it.
+
+**Bootstrap is proven, not theoretical.** The server has run
+`python3 bootstrap.py mx-prod.ini` followed by
+`uv run invoke install-sources --ini mx-prod.ini` with the section present, and
+it worked. The header comment's two-step recipe for a *new* section is now a
+tested path rather than an inference, and no future section needs to rediscover
+it.
+
+**Carried forward, deliberately not a ticket.** The deploy that ran installed
+`cfa654e` -- the undressed block. The pins now point at `5d85f44` +
+`2b1600f`, so the dressed promo and derico's tokens reach the server on the
+**next** `install-sources`. That is routine ops on an already-proven path, not a
+decision this map owes anyone, so it is recorded here rather than minted as a
+ticket. Re-pinning happens on every deploy anyway, which is exactly how this
+pin went stale in the first place -- the drift is expected, not a defect.
