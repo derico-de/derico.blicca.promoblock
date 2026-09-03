@@ -28,8 +28,11 @@ native-Aurora path has been exercised, not that a spec exists for it.
   link**, **call to action**, **variant**, **image placement**, **theme seam**,
   **reference case**.
 - Rationale: [ADR 0001](../../docs/adr/0001-the-promo-is-authored-not-referential.md)
-  (authored, not referential) and [ADR 0002](../../docs/adr/0002-seam-defaults-live-at-their-point-of-use.md)
-  (the seam declares no property; defaults live at their point of use).
+  (authored, not referential), [ADR 0002](../../docs/adr/0002-seam-defaults-live-at-their-point-of-use.md)
+  (the seam declares no property; defaults live at their point of use) and
+  [ADR 0003](../../docs/adr/0003-derived-keys-are-the-servers-and-carry-their-provenance.md)
+  (derived keys are the server's and carry their provenance; the client never
+  writes one).
 - The mechanism is decided and implemented elsewhere: [the block add-on
   contract](../../../plone.blicca.auroraeditor/docs/design/aurora-block-addon-contract.md)
   + ADR 0013. Read it before touching packaging. Host `block_api` is **1.1**
@@ -539,6 +542,28 @@ native-Aurora path has been exercised, not that a spec exists for it.
   a **tested** path. Residual, deliberately not a ticket: the deploy that ran
   installed `cfa654e`, so the dressed block reaches the server on the next
   `install-sources` — routine ops on a proven path.
+
+- [Decide: what the canvas shows when `image` and `image_url` disagree](issues/19-decide-canvas-image-freshness.md)
+  — **Neither of the ticket's three options: a derived key gets provenance, and
+  `edit` still writes nothing.** Recorded as
+  [ADR 0003](../../docs/adr/0003-derived-keys-are-the-servers-and-carry-their-provenance.md).
+  The reframe: staleness was the symptom, **anonymity** the cause — a derived key
+  says what the server computed, never what it computed it *from*, and the canvas
+  cannot correlate `image_url` (`<path>/<download>`) with `image`
+  (`../resolveuid/<UID>`), so it can tell neither fresh from stale nor
+  resolved-to-nothing from never-loaded. Both divergences are that one missing
+  fact. Fix: a fourth derived key `image_ref` carrying the **normalized** stored
+  reference, stripped on save, emitted **even in the branches that resolve to
+  nothing** — *stamp present, `image_url` absent* is how the client learns the
+  server looked at this exact reference and got nothing. A mismatched stamp
+  discards the derived set and previews optimistically; a matching one with no
+  url draws the **no-image layout** plus a `.promo-notice`, so `effectiveAlign`
+  now agrees on every serialized node and the parity claim **drops its stated
+  exception**. Rejected: clearing the keys from `edit`, which buys freshness with
+  a writer and costs the no-writer rule its meaning. Incidental: the README
+  ranked these backwards — a dangling reference looks broken and *is*, while a
+  replacement looks fine and is **wrong**. No upgrade step (nothing stored, no
+  profile XML). Built by [ticket 21](issues/21-build-derived-key-provenance.md).
 
 ## Not yet specified
 
