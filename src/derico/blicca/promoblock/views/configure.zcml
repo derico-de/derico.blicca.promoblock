@@ -1,0 +1,27 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="derico.blicca.promoblock">
+
+  <!-- The block add-on contract's dispatch convention (§5.1):
+       BlockDispatchMixin.render_block_data looks the renderer up by the name
+       `aurora-block-<@type>` and nothing else — the registry record's `types`
+       field never influences it. The name is spelled here as a literal because
+       ZCML cannot interpolate; test_view_promo_block_view asserts it equals
+       f"aurora-block-{PROMO_BLOCK_TYPE}".
+
+       `for="*"`, because a promo can be authored on any blocks container — and
+       on the site root, where a footer renders on every page. The add-on's own
+       browser layer is what makes installing the package the whole of enabling
+       the renderer; until it is registered the wrapper's soft-lockstep check
+       warns on every edit-page render. -->
+  <browser:page
+      name="aurora-block-promo"
+      for="*"
+      class=".promo_block_view.PromoBlockView"
+      template="promo_block_view.pt"
+      permission="zope2.View"
+      layer="derico.blicca.promoblock.interfaces.IDericoBliccaPromoblockLayer"
+      />
+
+</configure>

@@ -1,0 +1,283 @@
+{
+  "$comment": [
+    "The Promo's anatomy, case by case: the stored node in, the exact markup out.",
+    "",
+    "Hand-authored from ticket 17's class table and ticket 03's Q8 table, and read",
+    "by BOTH renderers' suites — the React `view` (bundle-src/test/promo-anatomy.test.tsx)",
+    "and the Chameleon template (ticket 09's Python suite). Ticket 17 exists so the",
+    "two cannot diverge, and ticket 09's stated test is 'the emitted class list",
+    "equals the React view's'; this file is what makes that a test against a FIXED",
+    "list rather than against whichever ticket landed first.",
+    "",
+    "`html` is the markup INSIDE the host's block wrapper, on the PUBLIC surface.",
+    "The wrapper's own `block block-promo has--block-width--<w>` stamp is the",
+    "host's and is not our output (ticket 17, 'arriving for free').",
+    "",
+    "No whitespace between elements: the Plate editable computes",
+    "`white-space: pre-wrap`, so an inter-element newline becomes a real line box.",
+    "JSX drops it by construction; the server template must strip its indentation.",
+    "",
+    "HOW THE TWO SUITES COMPARE. `html` is exact for the React renderer, up to",
+    "attribute ORDER: React writes an <img>'s `src` last on purpose, which is its",
+    "implementation detail and not something a fixture shared with a Chameleon",
+    "template should encode, so each suite sorts attributes before comparing.",
+    "",
+    "Across renderers the contract is the SKELETON: `html` with every attribute",
+    "except `class` removed, text kept. That is what lets ticket 09 emit a real",
+    "resolution ladder in the <img> while still being held to the same anatomy.",
+    "Each suite derives both forms from this one hand-authored `html`, so there is",
+    "no second field to drift.",
+    "",
+    "The editor surface is `html` with every `href` dropped (ticket 08's",
+    "canvas-safety rule), and nothing else changed.",
+    "",
+    "`reactOnly` marks the single case where the two renderers legitimately",
+    "differ, with the reason. Extended together with both suites or not at all."
+  ],
+  "cases": [
+    {
+      "name": "empty",
+      "note": "Ticket 17 rule 3: exactly one element. Containers are never emitted empty, and the canvas skeleton lives outside the root.",
+      "data": {},
+      "html": "<div class=\"promo has--align--center\"></div>"
+    },
+    {
+      "name": "copy-only",
+      "note": "No image, so `center` — the image-less promo wants the stacked layout anyway.",
+      "data": {
+        "head_title": "Kontakt",
+        "title": "Erstgespräch vereinbaren",
+        "description": "Erzählen Sie uns von Ihrem Vorhaben."
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><p class=\"promo-kicker\">Kontakt</p><h2 class=\"promo-title\">Erstgespräch vereinbaren</h2><p class=\"promo-description\">Erzählen Sie uns von Ihrem Vorhaben.</p></div></div>"
+    },
+    {
+      "name": "title-only",
+      "note": "promo-copy renders for a single child; promo-kicker and promo-description simply do not exist.",
+      "data": {
+        "title": "Plone"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "image-only",
+      "note": "No copy at all, so promo-copy is absent — a picture and nothing else.",
+      "data": {
+        "image": "../resolveuid/8f2c1a9e",
+        "image_url": "/pic.jpg/@@images/image/large"
+      },
+      "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"/pic.jpg/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture></div>"
+    },
+    {
+      "name": "image-with-scales",
+      "note": "The realistic post-serialization node: ticket 10's three keys plus the base_path it stamps into every scale entry. The React half emits image_url as a single src by decision (no `sizes` policy is available to it); ticket 09 builds the ladder from image_scales. The two agree on the ANATOMY, which is what the skeleton compares.",
+      "data": {
+        "image": "../resolveuid/8f2c1a9e",
+        "image_url": "/pic.jpg/@@images/image/large",
+        "image_field": "image",
+        "image_scales": {
+          "image": [
+            {
+              "download": "@@images/image-1200-abc.jpeg",
+              "width": 1200,
+              "height": 800,
+              "base_path": "/pic.jpg",
+              "scales": {
+                "preview": {
+                  "download": "@@images/image-400-def.jpeg",
+                  "width": 400,
+                  "height": 267
+                }
+              }
+            }
+          ]
+        }
+      },
+      "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"/pic.jpg/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture></div>"
+    },
+    {
+      "name": "image-left",
+      "note": "Reference case B's shape: `left` placement with an image, one action.",
+      "data": {
+        "image": "../resolveuid/8f2c1a9e",
+        "image_url": "/pic.jpg/@@images/image/large",
+        "head_title": "Open Source",
+        "title": "Plone für langlebige Anwendungen",
+        "align": "left",
+        "cta_primary_label": "Mehr erfahren",
+        "cta_primary_link": "/leistungen/plone",
+        "cta_primary_variant": "button",
+        "cta_secondary_variant": "button"
+      },
+      "html": "<div class=\"promo has--align--left\"><picture class=\"promo-image\"><img src=\"/pic.jpg/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture><div class=\"promo-copy\"><p class=\"promo-kicker\">Open Source</p><h2 class=\"promo-title\">Plone für langlebige Anwendungen</h2><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/leistungen/plone\">Mehr erfahren</a></div></div></div>"
+    },
+    {
+      "name": "align-orphaned",
+      "note": "Ticket 17 rule 1 / Q8 row 7: `left` stored, image later cleared. The modifier carries the EFFECTIVE placement, so it reads `center`; the stored value survives untouched.",
+      "data": {
+        "title": "Plone",
+        "align": "left"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "align-unknown",
+      "note": "A placement the widget cannot produce falls back, rather than emitting a class no sheet dresses.",
+      "data": {
+        "image": "../resolveuid/8f2c1a9e",
+        "image_url": "/pic.jpg/@@images/image/large",
+        "align": "top"
+      },
+      "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"/pic.jpg/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture></div>"
+    },
+    {
+      "name": "actions-both-variants",
+      "note": "Reference case A's actions: a button and a link, in DOM order. No slot class — primary/secondary name appearance, not order, and DOM order gives :first-child to anyone who needs position.",
+      "data": {
+        "title": "Erstgespräch vereinbaren",
+        "cta_primary_label": "Termin vereinbaren",
+        "cta_primary_link": "/kontakt",
+        "cta_primary_variant": "button",
+        "cta_secondary_label": "md@derico.de",
+        "cta_secondary_link": "mailto:md@derico.de",
+        "cta_secondary_variant": "link"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Erstgespräch vereinbaren</h2><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/kontakt\">Termin vereinbaren</a><a class=\"promo-cta promo-cta-link\" href=\"mailto:md@derico.de\">md@derico.de</a></div></div></div>"
+    },
+    {
+      "name": "secondary-action-alone",
+      "note": "The slots are symmetric: a secondary action with no primary renders as the only .promo-cta, and nothing in the class list says which slot it came from.",
+      "data": {
+        "cta_secondary_label": "md@derico.de",
+        "cta_secondary_link": "mailto:md@derico.de",
+        "cta_secondary_variant": "link"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-link\" href=\"mailto:md@derico.de\">md@derico.de</a></div></div></div>"
+    },
+    {
+      "name": "variant-absent",
+      "note": "Ticket 03 Q5: the schema `default` is not a storage guarantee, so both renderers fall back to `button` themselves.",
+      "data": {
+        "cta_primary_label": "Los",
+        "cta_primary_link": "/x"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/x\">Los</a></div></div></div>"
+    },
+    {
+      "name": "variant-unknown",
+      "note": "An off-list variant is not a third appearance: it falls back to `button`, so the sheet never meets a promo-cta with no variant class.",
+      "data": {
+        "cta_primary_label": "Los",
+        "cta_primary_link": "/x",
+        "cta_primary_variant": "ghost"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/x\">Los</a></div></div></div>"
+    },
+    {
+      "name": "action-label-without-link",
+      "note": "Q8 row 2: renders nothing. A button that goes nowhere is worse than an absent one.",
+      "data": {
+        "title": "Plone",
+        "cta_primary_label": "Los"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "action-link-without-label",
+      "note": "Q8 row 3: symmetric with row 2. No fallback to the target's Title — that would make the canvas fetch the target just to agree with the server.",
+      "data": {
+        "title": "Plone",
+        "cta_primary_link": "/x"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "action-link-fails-screen",
+      "note": "Q8 row 8, as ticket 08 reconciled it with ticket 17's table: a link that fails the Q7 screen is treated exactly as an absent link, so the action renders nothing. The canvas names it; the public page is silent.",
+      "data": {
+        "title": "Plone",
+        "cta_primary_label": "Los",
+        "cta_primary_link": "javascript:alert(1)"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "card-link",
+      "note": "Q8 row 4: both labels empty and a card link set, so the whole promo is wrapped. Ticket 17 rule 4 — a WRAPPER, never a root whose tag changes, and never a stretched-link overlay that would make the stylesheet load-bearing for clickability.",
+      "data": {
+        "title": "Plone",
+        "card_link": "/leistungen"
+      },
+      "html": "<a class=\"promo-cardlink\" href=\"/leistungen\"><div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div></a>"
+    },
+    {
+      "name": "card-link-on-an-empty-promo",
+      "note": "Rules 3 and 4 compose: the wrapper is outside the root, so an empty promo keeps its single element inside a wrapper that does have something to do.",
+      "data": {
+        "card_link": "/leistungen"
+      },
+      "html": "<a class=\"promo-cardlink\" href=\"/leistungen\"><div class=\"promo has--align--center\"></div></a>"
+    },
+    {
+      "name": "card-link-orphaned-by-a-label",
+      "note": "Q8 row 5 and the click rule: ANY action label present means the actions take the clicks and the card link is ignored. Never both — no interactive element is ever nested inside another.",
+      "data": {
+        "title": "Plone",
+        "card_link": "/leistungen",
+        "cta_primary_label": "Los",
+        "cta_primary_link": "/x"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2><div class=\"promo-actions\"><a class=\"promo-cta promo-cta-button\" href=\"/x\">Los</a></div></div></div>"
+    },
+    {
+      "name": "card-link-orphaned-by-a-label-that-renders-nothing",
+      "note": "The harsh corner, and it is deliberate: the click rule is keyed on the LABEL, not on whether the action renders (Q8 row 5 says 'any label set'). A label with no link therefore suppresses the card link AND renders no action, so the promo is not clickable at all — and the canvas says so.",
+      "data": {
+        "title": "Plone",
+        "card_link": "/leistungen",
+        "cta_primary_label": "Los"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "card-link-fails-screen",
+      "note": "Ticket 17's table gates the wrapper on a SCREENED link, so an unfollowable one emits no wrapper rather than a class-bearing anchor with nowhere to go.",
+      "data": {
+        "title": "Plone",
+        "card_link": "data:text/html,<script>"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "image-external-url",
+      "note": "Ticket 10 emits a free-text external URL whole — path_of() would strip the host off it — and nothing is appended, because @@images on an external picture is a guaranteed 404.",
+      "data": {
+        "image": "https://plone.org/logo.png",
+        "image_url": "https://plone.org/logo.png"
+      },
+      "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"https://plone.org/logo.png\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture></div>"
+    },
+    {
+      "name": "image-value-is-not-a-picture",
+      "note": "The image field is a free-text surface in Aurora too (ticket 01), so it is screened as well — relative, http and https only.",
+      "data": {
+        "title": "Plone",
+        "image": "javascript:alert(1)"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "image-dangling-reference",
+      "note": "Ticket 10: a reference whose target was deleted yields no image_url at all, so the server draws the no-image layout. The canvas cannot tell that apart from an image picked one second ago and previews it anyway — the one stated divergence, argued in imageSrc's docstring. Editor-only and self-correcting.",
+      "data": {
+        "title": "Plone",
+        "image": "../resolveuid/gone"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>",
+      "reactOnly": {
+        "why": "No server has run behind this node, so imageSrc takes step 2 and previews the raw reference.",
+        "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"../resolveuid/gone/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+      }
+    }
+  ]
+}

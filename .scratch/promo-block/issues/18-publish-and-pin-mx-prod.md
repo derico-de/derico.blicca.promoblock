@@ -45,6 +45,19 @@ every deploy anyway, so the natural moment is after
 Creating the repository and pushing, though, can happen at any time and makes
 `mx-prod.ini` honest sooner.
 
+### Note from [ticket 12](12-build-registration.md)
+
+**The natural moment has arrived.** Ticket 12 is resolved, so the block is now
+genuinely installable — the record, the `++plone++` resource and the upgrade
+step all land on a site — which is the condition this ticket named for pinning
+being worth doing. The blocker is unchanged and still HITL: the GitHub
+repository does not exist, `gh` is absent, and the site `pyproject.toml`
+already depends on the package, so a `--ini mx-prod.ini` deploy stays broken
+until the repo is created, pushed and pinned.
+
+Note the server also needs `python3 bootstrap.py mx-prod.ini` before
+`install-sources`, because the section is new.
+
 ## Answer
 
 <!-- fill in -->

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<registry>
+
+  <!-- ONE IAuroraBlockAddon record for the one block this package ships
+       (block add-on contract §3.2, ADR 0013). Discovery is per site, so the
+       record is what makes the committed bundle reachable at all: without it
+       nothing loads the editor half, however correct the JS is.
+
+       Not a `plone.bundles` record. A bundle emits `<script src defer>`, not
+       `type="module"`, so the bundle's bare `react` / `platejs` imports would
+       miss the import map @@aurora-edit emits and a SECOND React would load;
+       the block then fails inside Plate. Same build workflow, different
+       record.
+
+       Not one record listing several @types either, should this package ever
+       grow a second block: `loadBlockAddons` calls `install(config)` once per
+       RECORD with no dedupe, so one install() registering two blocks would
+       silently kill the per-block `enabled` kill switch. -->
+  <records
+      interface="plone.blicca.auroraeditor.interfaces.IAuroraBlockAddon"
+      prefix="plone.blicca.auroraeditor.blockaddons/derico.blicca.promoblock.promo"
+      >
+
+    <!-- `++plone++`, never `++resource++`. Two URLs for one JS module means
+         two module instances, hence two Reacts, hence a block that throws
+         inside Plate. The directory is registered by the `plone:static` node
+         in configure.zcml; the two spellings have to stay in lockstep. -->
+    <value key="bundle">++plone++derico.blicca.promoblock/promo-block.js</value>
+
+    <!-- The FLOOR the block needs, not the host's current version (host is
+         1.1). Declaring the host's would let a later host bump strand this
+         block, and a §2.4 mismatch is a fail-soft skip: the block silently
+         vanishes from the slash menu rather than erroring. Compatible iff
+         same major and host minor >= declared minor, so "1.0" is the most
+         permissive compatible declaration.
+
+         This says nothing about the package's Python imports; §2.2 covers the
+         JS facades alone. That surface is versioned by the distribution,
+         hence the `plone.blicca.auroraeditor>=1.0.0a2` floor in pyproject.toml.
+         Both signals ship; neither implies the other. -->
+    <value key="block_api">1.0</value>
+
+    <!-- The scope-wrapped sheet that dresses BOTH surfaces (ticket 11). The
+         wrapper links it in the head of the edit page and of the public
+         blocks view alike, which is the whole reason one sheet can serve the
+         React view and the Chameleon template. Lib mode emits one stylesheet
+         per build, not per entry. -->
+    <value key="css">++plone++derico.blicca.promoblock/promo-block.css</value>
+
+    <!-- Diagnostics and insert-gating, never dispatch. Feeds the lockstep
+         check (an editor block with no server renderer) and the slash-menu
+         filter. -->
+    <value key="types">
+      <element>promo</element>
+    </value>
+
+    <!-- No `permission` on purpose: unlike plonetheme.derico's hero this
+         block is generic and for every editor, so there is nothing to gate.
+         The gate fails open anyway when it is absent. -->
+
+    <value key="enabled">True</value>
+    <value key="weight">100</value>
+  </records>
+
+</registry>

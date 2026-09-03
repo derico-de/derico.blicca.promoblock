@@ -65,3 +65,59 @@ the system colours rather than from intent.
 The rule behind duties 1 and 2 is
 [ADR 0002](../../../docs/adr/0002-seam-defaults-live-at-their-point-of-use.md) — cite it in
 the sheet's header comment, so the next reader finds it from the code.
+
+**Note from [ticket 07](07-build-the-two-widgets.md):** this sheet dresses the
+**block**, not the sidebar. `promo-block.css` is scope-wrapped to
+`.aurora-editor`, `.aurora-editor-portal` and `.aurora-blocks-view` — roots that
+exist in Blicca and nowhere in Aurora proper — so it cannot reach the three
+promo widgets there. They carry the host's own Tailwind metrics instead; leave
+`promo-textarea-widget` / `promo-select-widget` / `promo-link-widget` out of
+this file.
+
+
+## Note from [ticket 08](08-build-editor-half.md) (2026-09-03)
+
+Three constraints the built React half puts on the sheet:
+
+1. **Never select on `[href]`.** No anchor carries one on the editor surface —
+   a live `href` on the `.promo-cardlink` wrapper makes the whole block a
+   navigation target in the canvas, so the author cannot click to select what
+   they are editing. `.promo-cardlink` and `.promo-cta` are the hooks; an
+   attribute selector would style the public page and not the canvas.
+2. **Two classes exist that do NOT descend from `.promo`**, deliberately:
+   `.promo-incomplete` (the skeleton naming the empty slots) and
+   `.promo-notice` (one per value the renderers drop). They are the editor's
+   own chrome, live **outside** the block root because ticket 17 rule 3 keeps
+   that root empty, and are `contentEditable={false}`. The sheet's descent
+   habit therefore cannot reach them — they are reachable from the `@scope`
+   root instead, as `derico-hero`'s `.derico-hero-incomplete` is. Decide
+   whether to dress them at all: unstyled they are plain paragraphs, and in
+   Aurora proper nothing dresses them either way (no `.aurora-editor` root),
+   which is the residual delivery gap ticket 17 already flagged to this ticket
+   and 15.
+3. **No `srcset`, no wrapper box around the picture.** The React half emits one
+   `<img src>` from ticket 10's `image_url`; `--promo-image-ratio` goes on the
+   `<img>` with `object-fit: cover` and `--promo-image-width` is a grid track
+   on `.promo`, exactly as ticket 17 specified. There is no `.promo-image`
+   inner box to hang either on.
+
+The exact emitted anatomy for 23 states is in `../../../tests/anatomy-cases.json`
+— useful as the list of selector families to cover, and as the set of states a
+rule must not break.
+
+### Note from [ticket 09](09-build-server-half.md) (2026-09-03)
+
+The server half is built, so both surfaces this sheet dresses now exist.
+
+**The two `<img>` elements do not carry the same attributes.** The server adds
+intrinsic `width`/`height` when the image resolved to in-site scales, omits them
+for an SVG or an external URL, and the canvas never carries them at all. So size
+`.promo-image` from the sheet and do **not** lean on intrinsic attributes for
+aspect ratio, or the two surfaces will differ on exactly the images that have
+scales. `<picture class="promo-image">` + `<img>` is emitted on both surfaces
+whenever there is an image, which is what makes that safe to do in one rule.
+
+This joins ticket 08's standing rule that the sheet must **never select on
+`[href]`** — the canvas drops every `href` and keeps every element, tag and
+class, so `[href]` is the one selector that can tell the surfaces apart.
+

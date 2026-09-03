@@ -50,3 +50,36 @@ the host provides. `test/upstream-registry.ts` supplies the thing that
 genuinely is not on npm: a registry carrying **Aurora's registrations and no
 more**, so a field that only works because the Blicca wrapper registered
 something fails here rather than in production.
+
+## The three sidebar widgets
+
+`src/widgets/` registers `promo_textarea`, `promo_select` and `promo_link`
+from `install()`. They exist because the ecosystem has no working
+implementation of any of them: `textarea` and `select` are declared in the
+widget-type union and implemented by nobody, and `choices` is registered only
+by the Blicca wrapper — so a field leaning on it renders a select in
+`@@aurora-edit` and a bare text input in Aurora proper. With the Promo edited
+from the sidebar only, that is the difference between an authorable block and
+single-line inputs everywhere.
+
+**Namespaced keys, always.** `registerWidget` writes into one global
+last-wins map, so claiming `textarea` would change every other block's fields
+in the host, Aurora's own teaser description included. Repairing that for the
+ecosystem is a good idea and an upstream patch — not a side effect of
+installing this block.
+
+`promo_link` is the composite one: a text input over a bare string, plus a
+Browse disclosure that mounts **the host's own** picker, looked up as
+`config.getWidget('object_browser')` and never imported (Blicca's is a
+`pat-contentbrowser` island; upstream's calls `useLoaderData`). Free text is
+never gated — `mailto:` and `tel:` are typed, not picked, and no host
+implements `allowExternals`. A picked item is stored as
+`../resolveuid/<UID>`, matching `BliccaImageWidget`, because Blicca's
+`apiPath` is `portal.absolute_url()` and persisting a brain's `@id` would
+bake the deploy hostname into content.
+
+`test/widgets.test.tsx` mounts all three through `renderField`, a
+reproduction of the prop envelope `BlockSettingsFormRenderer` and `Field.tsx`
+actually build — the whole schema property spread, `label` from `title`,
+`defaultValue` from form state, and **no `id` and no `value`**, which is why
+the widgets generate their own control id rather than trusting `props.id`.

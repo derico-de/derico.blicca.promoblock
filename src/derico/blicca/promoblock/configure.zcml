@@ -25,11 +25,53 @@
       directory="profiles/uninstall"
       />
 
+  <!-- The Promo's image is stored as a bare reference and nothing else:
+       neither host persists image_scales/image_field by any route (ticket 01),
+       so this pair is the block's only source of scales. The deserializer is
+       not optional — unpaired, the derived data would be written back on the
+       next save and go stale. -->
+  <subscriber
+      factory=".image_transform.PromoImageSerializer"
+      provides="plone.restapi.interfaces.IBlockFieldSerializationTransformer"
+      />
+  <subscriber
+      factory=".image_transform.PromoImageSerializerRoot"
+      provides="plone.restapi.interfaces.IBlockFieldSerializationTransformer"
+      />
+  <subscriber
+      factory=".image_transform.PromoImageDeserializer"
+      provides="plone.restapi.interfaces.IBlockFieldDeserializationTransformer"
+      />
+  <subscriber
+      factory=".image_transform.PromoImageDeserializerRoot"
+      provides="plone.restapi.interfaces.IBlockFieldDeserializationTransformer"
+      />
+
+  <!-- Serves the committed editor bundle and its scope-wrapped sheet as
+       ++plone++derico.blicca.promoblock/... (block add-on contract §3.1:
+       artifacts are committed, no Node at install time).
+
+       `type="plone"` is not cosmetic. ++resource++ would serve the very same
+       file under a second URL, and two URLs for one JS module means two
+       module instances, hence two Reacts, hence a block that throws inside
+       Plate. The registry record's `bundle` and `css` spell this same name. -->
+  <plone:static
+      name="derico.blicca.promoblock"
+      type="plone"
+      directory="static"
+      />
+
   <genericsetup:importStep
       name="derico.blicca.promoblock-uninstall"
       title="Derico Blicca Promoblock uninstall"
       description="Uninstall derico.blicca.promoblock"
       handler="derico.blicca.promoblock.setuphandlers.uninstall"
       />
+
+
+  <include package=".upgrades" />
+
+
+  <include package=".views" />
 
 </configure>

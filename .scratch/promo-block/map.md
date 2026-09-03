@@ -209,6 +209,177 @@ native-Aurora path has been exercised, not that a spec exists for it.
   (Aurora app stack in a block's devDeps) or keep the transcription; noted on
   its body.
 
+- [Build: `promo_textarea`, `promo_select` and `promo_link`](issues/07-build-the-two-widgets.md)
+  — **All three built and registered; the picked-link storage corrected.** A
+  picked item is stored as **`../resolveuid/<UID>`, not the brain's `@id`** —
+  Blicca's `apiPath` is `portal.absolute_url()`, so an `@id` bakes the deploy
+  hostname into content; `BliccaImageWidget` already converts this way, and
+  doing it here makes the two hosts **converge** instead of diverging as this
+  ticket had pre-accepted (extracted as `storedLinkFor()`, which names the
+  shape ticket 09 must resolve). Three host facts shaped the rest: the sidebar
+  renderer passes **neither `id` nor `value`** — so the widgets mint their own
+  control id (the Blicca reference widgets' `htmlFor={props.id}` associates
+  nothing) and the text surfaces are **uncontrolled** off `defaultValue`, as
+  upstream's `TextField` is; and the sidebar portals out of Plate's
+  `afterEditable` slot as a **sibling** of the `Editable`, so no key guard is
+  needed and adding one would only break document-level listeners. Two
+  improvements on `BliccaChoicesWidget`: an unset select shows the schema
+  `default` without storing it, and an off-list stored value keeps its own
+  option. `promo_link` mounts the host's picker only while its Browse
+  disclosure is open, ignores empty selections, and disappears entirely where
+  no `object_browser` is registered — the picker is an affordance, never a
+  gate. Screening stays at render (Q7). **Note for ticket 11:** the block's
+  scope-wrapped sheet cannot reach the sidebar in Aurora proper, so these
+  widgets carry the host's Tailwind metrics instead — do not dress them from
+  the block stylesheet.
+
+- [Build: the image serialization transformer pair](issues/10-build-image-transformer.md)
+  — **Built (31 tests); three injected keys, not two, and the brain is a lucky
+  accident.** `image_scales` + `image_field` alone are unrenderable — a promo has
+  no `@id` to hang the entries' relative `download` off — so **`base_path` is
+  stamped into every scale entry** (the full site path, the form Blicca's helpers
+  join, *not* `plone.volto`'s portal-relative spelling) and a third key
+  **`image_url`** is injected, always usable as an `<img src>`. Its **absence**
+  is the signal for "no image": a dangling reference resolves to `("", None)`
+  rather than the raw string, so a deleted picture draws the no-image layout
+  instead of a guaranteed 404. Resolution composes `path2uid` (which follows
+  renames through the redirection storage, free) with `resolve_uid`, covering all
+  four stored forms plus upstream's legacy dict/list shapes. **The finding to
+  carry:** `resolve_uid` returns a brain only because an Image's primary field is
+  `INamedBlobImageField` → `INamedImageField`, *not* `INamedFileField`, so
+  restapi's `PrimaryFileFieldTarget` misses; had it applied, every promo would
+  silently lose its scales — and that adapter is **inert for anyone who can
+  edit**, so it would have shipped green and broken for visitors alone (pinned by
+  an anonymous test). Excluding the links **survives on a corrected reason**:
+  ticket 07 made them bare `resolveuid` strings, not `@id`-carrying objects, and
+  ticket 09 already owns the resolve-or-emit call. Proved by mutation, not
+  assertion: unregistering the deserializer fails 5 tests — necessary because
+  restapi's own generic deserializer pops `image_scales` from every block dict at
+  order 1 and knows nothing of the other two keys. **Ticket 08 gained a note**: a
+  freshly picked image carries no derived keys until the next load, and
+  upstream's `getPreviewSrc` cannot bridge it.
+
+- [Build: static resource, registry record, upgrade step](issues/12-build-registration.md)
+  — **Installed; the gate chain is green on the running site and the Promo is
+  in the slash menu.** The record is exactly as specified (no `permission` —
+  the block is generic), `plone:static` publishes `++plone++`, and uninstall
+  mirrors it. Three corrections to the ticket's assumptions. (a) The scaffolded
+  upgrade handler was **dropped**: `reload_gs_profile` re-imports every step of
+  the default profile on a live site, so 1001 is an `upgradeDepends` on a
+  one-file mini profile with `import_steps="plone.app.registry"` —
+  `plonetheme.derico`'s 1006 shape. Stated honestly: that narrowing has **no
+  observable effect today** (the uninstall handler is a no-op), so its test
+  asserts the registered step, not behaviour. (b) `plonecli` leaves the new
+  upgrade profile **installable from the add-ons control panel**, where
+  installing it would import the XML without moving the default profile's
+  version — added to `HiddenProfiles`, with a test that enumerates
+  `listProfileInfo()` so the next scaffolded step cannot ship visible. (c) The
+  registry copy under `1001/` is a **forced duplicate**, held identical to the
+  default profile by a parsed-XML test. Live: install → 204 at version 1001,
+  both artifacts 200, `@@aurora-edit` emits both busted URLs, `/` lists
+  **Promo** after `Teaser` (Aurora's own teaser not displaced), no console
+  errors. **Carry to ticket 09:** installing now raises the wrapper's
+  soft-lockstep warning on every edit-page render (`no aurora-block-promo
+  renderer view`) — expected, and itself proof the record survived every gate,
+  since `lockstep_gaps` only walks survivors. 42 tests pass; every guard was
+  mutation-checked.
+
+- [Decide: the anatomy class list both renderers emit](issues/17-decide-anatomy-classes.md)
+  — **Twelve classes, one flat prefixed namespace, and the block owns its root.**
+  `.promo` is the component's own `<div>`, never the host's `.block-promo`
+  stamp — the Promo's reason is not the hero's measured breakout but that **it
+  has two hosts** and Aurora's stamp is unverifiable here. Inner elements are
+  `promo-<noun>`, which **departs from `derico-hero` deliberately**: hero's bare
+  `kicker`/`button` are justified by mockup diffability, a rationale a generic
+  block does not have, and `--promo-kicker-color` already sets the vocabulary.
+  Descent discipline is kept regardless — it, not the prefix, is what stops
+  collision. Three rules make the two renderers agree: `has--align--<value>` is
+  emitted **always** and carries the *effective* placement (settling both awkward
+  Q8 rows at once, and removing the need for any image-presence class); the empty
+  promo is **exactly one element**, containers are never emitted empty; and the
+  card link is a **wrapper** `<a class="promo-cardlink">` rather than a root that
+  changes tag — the stretched-link overlay was rejected because it makes the
+  stylesheet load-bearing for clickability, which is the one thing ticket 04
+  hands themes power over. `<div>` root (not `<section>`: no nameless regions),
+  `<h2>` title, and the image is always `<picture>` + `<img>` on both surfaces so
+  09's `image_source()` branch is invisible to the sheet. Variant is
+  `promo-cta-button`/`promo-cta-link`, **not** `has--variant--` (that shape means
+  plugin machinery, which `align` has upstream and the variant does not); **no
+  slot class**, because primary/secondary name appearance, not order.
+  **Overrides ticket 08's provisional list** — `promo-item` and
+  `promo-image-wrapper` do not exist, `promo-content` is now `promo-copy`.
+  Corrected in passing: this ticket's own "properties are declared on the block
+  root" bullet was stale (ADR 0002). Unblocks 08 and 09.
+
+- [Build: the editor half — `install`, `edit`, `view`](issues/08-build-editor-half.md)
+  — **Built (158 vitest tests), and it hands ticket 09 a fixed target instead of
+  a peer.** The canvas preview rule — the one decision the ticket carried — is
+  `image_url` first, then a **resolveuid reference plus `/@@images/image/large`
+  left relative** (verified: `resolveuid` is `plone.outputfilters`'
+  `ResolveUIDView`, which *collects* its subpath and 301s — unlike
+  `plone.app.uuid`'s view, which overwrites the uid with each segment), then a
+  site-relative path or an absolute URL under `config.settings.apiPath` (the
+  branch that makes a just-picked image preview in **Aurora**), then any other
+  http(s) URL **whole**. No `srcset`: `w` descriptors without a `sizes` policy
+  the block cannot know would over-fetch. **One divergence, stated:** ticket 10
+  reads a missing `image_url` as "the picture is gone", which the canvas cannot
+  tell from "picked one second ago", so the canvas previews optimistically and
+  self-corrects — the renderers agree on every node the server has serialized,
+  which is what parity claims. Three decisions the ticket left implicit:
+  **nothing is seeded**, so the `useEffect`/`onChangeBlock` mechanism it
+  described is absent entirely (Q5, pinned by a throwing writer prop); **no
+  anchor carries an `href` in the canvas**, because a live one on the card-link
+  wrapper makes the whole block a navigation target and the author cannot select
+  what they are editing (⇒ **ticket 11 must never select on `[href]`**); and
+  **Q8 row 8 is subsumed** — a link failing the Q7 screen is treated exactly as
+  an absent link, since "as text, no href" would emit a `.promo-cta` ticket 17's
+  table forbids and restore the dead button row 2 removes. The editor half is
+  *only* honesty: `.promo-incomplete` names the empty slots (Q5 seeds nothing,
+  so a fresh promo would be a blank box) and `.promo-notice` announces every
+  value the renderers drop — which is what makes Q8's silence acceptable on the
+  public page. Delivered for 09 and 11: **`tests/anatomy-cases.json`**, 23
+  hand-authored cases at the package root read by *both* suites, compared
+  exactly (attribute order normalized away — React writes `src` last, which is
+  its business and not a Chameleon template's) and as a **skeleton** (classes
+  only), so 09 can emit a real ladder and still be held to the anatomy. Ticket
+  17's "Aurora's wrapper stamp is unverified" flag is **partly closed**:
+  upstream's own `TeaserBlockView` emits its own root and applies neither
+  `className` nor `style`, so owning the root is upstream's shape, not a Blicca
+  bet. **Not verified: the live canvas** — Plone is not running here, and that
+  claim belongs to 13/14/15 anyway. Every guard mutation-checked, with a
+  passing no-op control.
+
+- [Build: the server half — `@@aurora-block-promo`](issues/09-build-server-half.md)
+  — **Built (200 Python tests, vitest's 158 still green); resolution was made
+  href-bearing but not anatomy-bearing.** Three open questions answered. (a) A
+  picked link **is** resolved server-side (`resolve_uid` + `path_of`) rather
+  than emitted for the public `resolveuid` view — the stored
+  `../resolveuid/<UID>` is *document*-relative and lands somewhere different at
+  every depth — but a **dangling** reference comes back unchanged and the action
+  still renders, **deliberately unlike ticket 10's dangling-image rule**: a
+  missing picture changes the layout so the renderers must agree, a dead link
+  changes only where the click goes. Scheme safety is then structural, not a
+  guard — `RESOLVEUID_RE` cannot match `mailto:`/`tel:`, so they never reach
+  `path_of`. (b) `image_url` is the single source **and** the single gate;
+  screening it is what covers the image field's free-text surface, since ticket
+  10 emits an external URL whole. (c) **This ticket's own `image_source()`
+  instruction is superseded by ticket 17**: `None` no longer means "emit no
+  `<picture>`" but "no scale-derived ladder", the element being unconditional on
+  both surfaces; what the promised surface adds is intrinsic `width`/`height`,
+  and **no `srcset`**, for ticket 08's reason (no `sizes` policy a generic block
+  can know) which holds identically on the server. The template is authored
+  readably and `__call__` collapses `>\s+<` — sound rather than approximate,
+  because every value is stripped by `promo_data.text` and escaped by Chameleon,
+  so the only bare angle brackets are structural. `promo_data.py` is the
+  Plone-free twin of `data.ts`, and `TestScreenParity` reads the TS literals
+  (Python-reads-TS) after first proving its parser found something. **22 of 23
+  fixture cases match exactly**, not merely as skeletons, with the exemption
+  list a denylist so new cases default to strict. Ticket 12's soft-lockstep gap
+  is closed in-process via `lockstep_gaps`; **not verified live — Plone is not
+  running here**, which is 13/14's job regardless. **Ticket 11 gained a note**:
+  the server's `<img>` carries `width`/`height` only when scales resolved and
+  the canvas's never does, so the sheet must size `.promo-image` itself.
+
 ## Not yet specified
 
 <!-- empty: the property surface — the last patch of fog — graduated into

@@ -1,0 +1,72 @@
+<a xmlns:tal="http://xml.zope.org/namespaces/tal"
+   class="promo-cardlink"
+   tal:define="card view/card_href;
+               image view/image;
+               actions view/actions"
+   tal:attributes="href card"
+   tal:omit-tag="not:card">
+  <!--! The Promo's anatomy: ticket 17's class table, and the same markup
+        `bundle-src/src/promo/PromoView.tsx` emits. One scope-wrapped
+        stylesheet dresses both surfaces, so an element added here without a
+        peer there is a bug in both.
+
+        Commentary must use the `!` form above. Chameleon refuses an ASCII
+        double hyphen anywhere inside a comment, including in prose, and an
+        ordinary HTML comment would ship to every visitor besides.
+
+        The indentation below is stripped by `PromoBlockView.__call__`; see its
+        docstring for why an inter-element newline is not cosmetic here.
+
+        THE CARD LINK IS A WRAPPER (ticket 17 rule 4), never a root whose tag
+        changes to an anchor: `.promo`'s tag and class list are invariant
+        across every state, which is the parity the whole design buys.
+        `tal:omit-tag` drops this anchor whole when no card link survives the
+        click rule. A stretched link overlay was rejected, because it would
+        make the stylesheet load bearing for clickability, which is the one
+        thing ticket 04 hands themes power over. -->
+  <div tal:attributes="class view/root_class">
+    <!--! Always `picture` + `img`, so `image_source()`'s scales or no scales
+          branch is invisible to the sheet. `alt=""`: ticket 03 declared no alt
+          field, so the picture is decorative. The title and description carry
+          the meaning, and an alt invented from the title would be read twice.
+          `width` and `height` are dropped by Chameleon when absent. -->
+    <picture class="promo-image" tal:condition="image">
+      <img alt=""
+           decoding="async"
+           loading="lazy"
+           tal:attributes="src image/src;
+                           width image/width;
+                           height image/height" />
+    </picture>
+    <!--! Every element is conditional on its own content and no container is
+          ever emitted empty (ticket 17 rule 3), so an empty promo is exactly
+          one element. The editor's labelled skeleton lives outside the root
+          and has no counterpart here: the public page says nothing about what
+          an author typed and the renderers dropped. -->
+    <div class="promo-copy" tal:condition="view/has_copy">
+      <p class="promo-kicker"
+         tal:condition="view/kicker"
+         tal:content="view/kicker">Kicker</p>
+      <!--! `h2`, not a configurable level: a promo that never enters the
+            document outline is invisible to anyone navigating by heading, and
+            a generic block cannot know its true depth. -->
+      <h2 class="promo-title"
+          tal:condition="view/title"
+          tal:content="view/title">Title</h2>
+      <p class="promo-description"
+         tal:condition="view/description"
+         tal:content="view/description">Description</p>
+      <!--! No slot class: primary and secondary name appearance, not order,
+            and DOM order gives `:first-child` to anyone who needs position.
+            The variant is spelled `promo-cta-button` / `promo-cta-link` rather
+            than as a `has` modifier, which is the shape that means plugin
+            machinery: `align` has that upstream and the variant does not. -->
+      <div class="promo-actions" tal:condition="actions">
+        <a tal:repeat="action actions"
+           tal:attributes="class action/css;
+                           href action/href"
+           tal:content="action/label">Label</a>
+      </div>
+    </div>
+  </div>
+</a>
