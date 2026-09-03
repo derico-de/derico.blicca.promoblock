@@ -493,6 +493,36 @@ native-Aurora path has been exercised, not that a spec exists for it.
   and its own*, **not** *verified in Aurora* — and absorbs ticket 11's two
   notes.
 
+- [Build: retune the Promo for derico, in tokens only](issues/16-derico-token-line.md)
+  — **Six properties, no rule, and the design source overruled the plan in
+  three places.** Landed as `derico.css` §9, the same shape as §8's
+  `--aurora-block-*` values. The ticket's fixed table was written from ticket
+  04 and predates the sheet: `--promo-description-size` is **not** set (the
+  design's card copy is body text; `--text-lede` is the SECTION lede),
+  `--promo-link-color` is **not** set and `--derico-brand-text` would have been
+  a bug (the property also paints `.promo-cardlink`, the anchor WRAPPING the
+  block, so a brand step tints an entire card-linked promo), and
+  `--promo-cta-radius` — absent from the table — was needed, because the
+  design's button is a pill and the block's literal is `0.375rem`. The title
+  went to the design's **component** step (`--clara-text-title`), not ticket
+  13's `--derico-text-heading`: with case A and case B on one page the band
+  scale put a 56px title on half a column. The specificity fear turned out to
+  be misplaced — the block declares no `--promo-*` anywhere (ADR 0002), so
+  inheritance from `:root` is the whole mechanism and no rule was needed; the
+  seam reaches `@@aurora-edit` identically, verified. Contrast measured through
+  a canvas on the running site (label 4.60:1 on the fill, 5.71:1 on hover;
+  kicker 6.43/6.01/5.61:1 on the three light grounds), and ticket 13's
+  dark-slot caveat costs **nothing** — the flattened ink is near-white too, so
+  it lands on the same 4.60:1. One measurement fails and ships: the copper fill
+  is 2.24:1 against the `dark` slot, admitted by an **inverted** test rather
+  than left out of the table, because the label identifies the control and the
+  only fix is a global border for one slot. The guard ticket 16 said review
+  would have to carry is now CI: `test_promo_seam.py` reads the property names
+  out of the block's own built sheet and fails any sheet in the theme that
+  declares a `--promo-*` — per rule, not per name, a hole found by
+  mutation-checking. Raised [ticket 20](issues/20-decide-promo-title-scale-axis.md):
+  one title size cannot serve both a band and a card.
+
 ## Not yet specified
 
 - **Whether the title needs a twentieth property in Aurora.** Ticket 11 found
@@ -508,6 +538,17 @@ native-Aurora path has been exercised, not that a spec exists for it.
   at a real Aurora page.
 
 ## Out of scope
+
+- **The Aurora blocks view renders in Tailwind's font stack, not derico's.**
+  Found while measuring ticket 16: `.aurora-blocks-view` computes
+  `ui-sans-serif, system-ui, …` while `body` computes Clara's Source Sans 3, so
+  **every** block's body copy on a published derico page — text blocks, the
+  hero, the promo alike — is in the system sans. It is Blicca's scoped preflight
+  inherited by the scope root, it predates this block, and no `--promo-*`
+  property can reach it (the seam publishes no family, on purpose). A theme rule
+  could, which is exactly why it wants deciding somewhere other than inside a
+  promo ticket. Beyond this map's destination in both directions: it is neither
+  the promo's defect nor the promo's fix.
 
 - **Standing up a live Aurora (Seven) against this backend.** Settled by
   [ticket 02](issues/02-research-exercising-native-aurora.md). It is *possible* —
