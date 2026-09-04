@@ -258,6 +258,18 @@ the wrapper, correctly full-bleed.
 
 - **The placement switch.** `center` stacks and centres, `left` and `right` are
   two columns. Wanting a different one means wanting a different block.
+- **The title has one size, not one per context.** A promo standing in for a
+  full-width section band wants a larger headline than a promo used as a card,
+  and `--promo-title-size` is a single inherited value that cannot express
+  both. The block is dressed as a **card** — a block an author drops on a page
+  — and a page-scale headline is what the page's own `h1` is for. If the band
+  case is ever authored for real, the fix is a second property
+  (`--promo-title-size-full`, read under `.block.has--block-width--full`), an
+  additive **minor** change that leaves `1.75rem` where it is; it is not a
+  ramp inside the block, and it is not a theme rule. Decided in
+  `.scratch/promo-block/issues/20-decide-promo-title-scale-axis.md`, which
+  carries the citations and the one constraint that matters: only `full` is
+  expressible on both surfaces.
 - **The focus ring.** The block sets no `outline` at all, so the host's
   `:focus-visible` reaches the CTA unopposed. A property here would be a seam
   over something that was never blocked.

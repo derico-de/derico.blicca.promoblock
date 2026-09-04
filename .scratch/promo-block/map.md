@@ -22,6 +22,17 @@ native-Aurora path has been exercised, not that a spec exists for it.
   (`derico.blicca.promoblock`); one token line lands in `plonetheme.derico`
   (ticket 16). Nothing lands in `plone.blicca.auroraeditor` — this block uses
   the contract as published and amends none of it.
+- **Blicca first; an Aurora gap defers, it does not veto.** Standing
+  preference, set by md@derico.de on 2026-09-04 while resolving
+  [ticket 20](issues/20-decide-promo-title-scale-axis.md). Aurora is
+  incomplete — it has not yet caught up with the Volto features this work
+  assumes — so the rule for NEW work is: build for Blicca, do it in Aurora
+  where Aurora can, and postpone the Aurora half where the feature is simply
+  missing. A mechanism existing in only one host is therefore **not**
+  disqualifying on its own; it is a stated deferral. This does not retro-edit
+  tickets 02, 15 or 17, whose reasoning was sound under what was then known,
+  and it does not amend the Destination — that was met on its own terms. It
+  changes what counts as an objection from here on.
 - Skills per ticket type: `/grilling`, `/research`, `/plonecli` (scaffold and
   upgrade steps), `/tdd`.
 - Vocabulary: [`CONTEXT.md`](../../CONTEXT.md) — **Promo block**, **kicker**, **card
@@ -62,6 +73,12 @@ native-Aurora path has been exercised, not that a spec exists for it.
   `promo_select`, and — added by ticket 03 — `promo_link`) — claiming the generic
   `textarea` would silently change every other block's fields, which belongs
   upstream as a patch, not here as a side effect.
+  **Still true as built, and now bounded by the Blicca-first note above:** this
+  constraint is what shaped the namespaced widgets and it is not being undone.
+  What it no longer does is *veto* — where Aurora has no counterpart at all
+  ([ticket 20](issues/20-decide-promo-title-scale-axis.md)'s
+  `has--block-width--full` is the first case), the Aurora half is postponed
+  rather than the feature dropped.
 - **Two widget exceptions, taken deliberately.** `align` (cmsui registers
   `AlignWidget` upstream, with icons for exactly `left | right | center`), and
   the image field, **named `image` so field-id resolution hands it the host's
@@ -618,6 +635,38 @@ native-Aurora path has been exercised, not that a spec exists for it.
   orphaned `align` is genuinely orphaned), and the sheet upscales a picture
   narrower than its track.
 
+- [Decide: does the seam grow a context axis for the title
+  scale?](issues/20-decide-promo-title-scale-axis.md)
+  — **Not built, the shape pinned, and the map gained a doctrine on the way.**
+  Two of the ticket's own premises were wrong. (a) The markup axis it called
+  "already there" is **Blicca-only**: `has--block-width--full` is added by an
+  additive Blicca plugin over an Aurora that "only sets the inline
+  `--block-width` custom property" (`plone-block-width.tsx:25-27`,
+  `plate.py:437`), so options 2a and 3 both keyed on one host. That read as
+  disqualifying and was **overruled as standing policy** — Blicca first, Aurora
+  postponed where it is missing features — which is now a Notes entry above
+  rather than this ticket's private finding. (b) With the mechanism objection
+  gone, the axis is buildable and still **not wanted**: the band case has never
+  been authored, `/Plone/promo-band-probe` is a fixture ticket 16 stood up to
+  measure, and the map already names the band a [[reference case]], not a
+  migration target. Growth policy makes adding a property minor, so the day it
+  is wanted it is cheap. **Pre-decided for that day:**
+  `--promo-title-size-full` under `.block.has--block-width--full` — the theme
+  states both scales and the block states no policy; **not** a container ramp
+  (available today, `.promo` is already a container — rejected because it
+  buries a breakpoint the theme can only fight with a rule, which is what
+  ticket 04 exists to prevent) and **not** a theme rule (which
+  `test_promo_seam.py`'s per-rule guard was written to catch, by rule and not
+  by name). `styles.css` rule 3 gains a **documented exception** rather than a
+  quiet violation — the rule forbids *unverifiable* host stamps and this one is
+  verified in both Blicca surfaces. `1.75rem` does not move. The builder's one
+  constraint: **only `full` is expressible**, because the canvas plugin stamps
+  the class for `full` alone while the server emits it for every width, so a
+  per-width family would hold on the page and silently not in the canvas.
+  README gained a bullet under "Not themeable, on purpose"; no code, no
+  property, no test change — both lockstep suites untouched and green, which is
+  the check that nothing was built by accident.
+
 ## Not yet specified
 
 - **Whether the title needs a twentieth property in Aurora.** Ticket 11 found
@@ -630,7 +679,9 @@ native-Aurora path has been exercised, not that a spec exists for it.
   *does it read as broken*, and [ticket 15](issues/15-verify-native-aurora.md)
   established that nothing here can see Aurora render: no Seven app is stood
   up, and that is out of scope below. Graduates the first time someone looks
-  at a real Aurora page.
+  at a real Aurora page — which the Blicca-first note in Notes makes an
+  explicit **deferral** rather than merely an unknown: it waits on Aurora
+  catching up, not on this map.
 
 ## Out of scope
 
