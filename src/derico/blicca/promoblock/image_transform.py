@@ -49,8 +49,13 @@ logger = logging.getLogger(__name__)
 #: them, and the deserializer strips them before the node is written — so the
 #: two directions are spelled once and cannot drift apart. plone.restapi's own
 #: generic deserializer already pops ``image_scales`` from every block dict,
-#: but it knows nothing of the other two; do not rely on it.
-DERIVED_FIELDS = ("image_scales", "image_field", "image_url")
+#: but it knows nothing of the other three; do not rely on it.
+#:
+#: ``image_ref`` is the provenance stamp (ADR 0003): the normalized reference
+#: the other three were derived FROM, so a reader can tell a fresh derived set
+#: from one describing a picture the author has since replaced. It is derived
+#: like the rest, so it is stripped like the rest — the client never writes it.
+DERIVED_FIELDS = ("image_scales", "image_field", "image_url", "image_ref")
 
 
 def stored_image(value):
@@ -155,6 +160,12 @@ class PromoImageSerializerBase:
         stored = stored_image(value.get("image"))
         if not stored:
             return value
+        # ADR 0003: the provenance stamp goes on first, and OUTSIDE the try.
+        # *Stamp present, ``image_url`` absent* is how the client learns the
+        # server looked at this exact reference and got nothing — which is as
+        # true of the failure below as of a dangling reference, so an image
+        # that blew up must not read to the canvas as one never loaded.
+        value["image_ref"] = stored
         try:
             value.update(derived_image_fields(self.context, stored))
         except Exception:

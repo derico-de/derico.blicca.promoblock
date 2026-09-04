@@ -565,6 +565,59 @@ native-Aurora path has been exercised, not that a spec exists for it.
   replacement looks fine and is **wrong**. No upgrade step (nothing stored, no
   profile XML). Built by [ticket 21](issues/21-build-derived-key-provenance.md).
 
+- [Build: the derived-key provenance stamp](issues/21-build-derived-key-provenance.md)
+  — **Built (246 Python, 257 vitest); the stamp went one level up from where the
+  ticket put it, and the strict check exposed a test habit that was fiction.**
+  `image_ref` is stamped in the serializer's `__call__` and **outside the
+  `try`**, not in `resolve_image`'s branches: the exception branch is a node the
+  server *has* serialized, and leaving it anonymous would have reintroduced the
+  very divergence through the one door nobody was watching (proved by mutation —
+  stamping after the `update()` fails exactly one test and nothing else). The
+  client check is **strict**: no stamp ⇒ the whole derived set is ignored, since
+  ADR 0003's defect is anonymity, not staleness. That broke tests in three files
+  which spelled "has a picture" as `{image_url: '/p'}` — **a node no serializer
+  can emit** — now spelled as a served node (reference + stamp + url). The
+  parity exception **moved rather than vanished**: `image-dangling-reference`
+  lost its `reactOnly` as predicted, and a 26th case `image-just-picked` is its
+  honest home — the node the server has *never* serialized, which is what the
+  parity claim always excluded. `warnings()` needed a split, not a row: a
+  screen-failing value and a confirmed-dead reference reach the same branch and
+  are different mistakes, so the screen wins where both apply. And the ADR's own
+  last consequence was **wrong about its cover** — "the existing parity tests
+  hold them level" named tests that did not exist, `DERIVED_FIELDS` being
+  Python-only; `data.ts` now exports `DERIVED_KEYS` (consumed by the schema
+  suite, so not a test constant) held level by a new Python-reads-TS assertion.
+  README's two passages rewritten plus the "one of the two places" line that
+  would have gone stale; CONTEXT.md gained **Derived key** and **Provenance
+  stamp**, which ticket 19 decided and left unnamed. No upgrade step (nothing
+  stored, no profile XML). **Not verified live** — Plone is not running here and
+  the rule is not to start one; raised as
+  [ticket 22](issues/22-verify-canvas-freshness-live.md), because the README
+  claim ticket 21 rewrote is the one thing no browser has seen.
+
+- [Verify: the canvas follows a replacement and a deletion, on a running
+  site](issues/22-verify-canvas-freshness-live.md)
+  — **All four checks pass live, and the canvas caught what no unit test could.**
+  On `/Plone/promo-freshness-probe`, driven through the real content browser: a
+  replaced picture switches the canvas **immediately** (rung 1 → rung 2 on the
+  stamp mismatch), proved by `naturalWidth/Height` rather than by a URL string,
+  and a deleted target reflows to `has--align--center` with no `<picture>` —
+  identical to the anonymously-fetched published page, element for element, zero
+  console errors. The stamp is on the wire in both shapes for admin **and**
+  visitor, including the one the mechanism rests on: `image_ref` present,
+  `image_url` absent. Every request while editing was a `GET` — including a
+  `@search` by UID that is Blicca's side channel *looking and not patching*,
+  ticket 01's claim seen live. Stated rather than overclaimed: "no derived key on
+  disk" is **unobservable** through REST by construction (strip-then-derive), so
+  that half stays with `TestRoundTrip`. **The finding:** the dead-reference
+  notice was quoting `../resolveuid/<uid>` — a string the author has never seen,
+  for a picture that no longer has a title to offer instead — so it no longer
+  quotes anything, while the "not a kind of picture" sentence keeps its quote
+  because there the value IS what the author typed; the asymmetry is now pinned
+  by a test. Left alone deliberately: two notices fire for one deletion (the
+  orphaned `align` is genuinely orphaned), and the sheet upscales a picture
+  narrower than its track.
+
 ## Not yet specified
 
 - **Whether the title needs a twentieth property in Aurora.** Ticket 11 found

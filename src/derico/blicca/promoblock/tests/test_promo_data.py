@@ -57,6 +57,16 @@ class TestScreenParity:
         # thought of. Extended together or not at all.
         assert ts_array("LINK_SCHEMES") == promo_data.LINK_SCHEMES
 
+    def test_the_derived_key_set_matches(self):
+        # ADR 0003's stated failure mode, made a test: the derived keys are
+        # spelled in Python (``DERIVED_FIELDS``, which the serializer stamps
+        # and the deserializer strips) and consumed in TypeScript, and the
+        # provenance stamp added a member whose ABSENCE is meaningful — so a
+        # fifth key added on one side only is what breaks the canvas quietly.
+        from derico.blicca.promoblock.image_transform import DERIVED_FIELDS
+
+        assert ts_array("DERIVED_KEYS") == DERIVED_FIELDS
+
     def test_image_schemes_match(self):
         # `mailto:` and `tel:` are meaningless as an <img src>, and the image
         # field is a free-text surface too in native Aurora (ticket 01).

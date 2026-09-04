@@ -82,6 +82,30 @@ theme's inherited one and cannot be set from outside.
 _Avoid_: overrides, skinning, theme CSS (that is the thing the seam exists to
 avoid needing); default declaration (the seam has defaults but declares none).
 
+**Derived key**:
+A key the block's serializer computes onto a stored node at load and its
+deserializer strips at save, so it is never on disk: `image_url`,
+`image_scales`, `image_field` and the [[provenance-stamp]] `image_ref`. A
+derived key belongs to the **server alone** — no client-side code writes or
+clears one — and is read by both renderers as ordinary data (ADR 0003). An
+author is never offered one in the sidebar.
+_Avoid_: cached value (nothing is invalidated, it is recomputed on every load),
+enriched field, injected key (accurate about the mechanism, silent about who
+owns it).
+
+**Provenance stamp**:
+`image_ref`, the [[derived-key]] naming the stored reference the other derived
+keys were computed **from** — normalized the same way on both sides. It is what
+lets the editor canvas trust or distrust the set: a stamp matching the stored
+`image` makes the set authoritative, including its *emptiness*, which is the
+server saying it looked at this exact reference and found nothing; a mismatched
+or absent stamp means the keys are not about this value, and the canvas falls
+back to previewing the raw reference. It exists because a derived key otherwise
+arrives **anonymous** — it says what the server computed and not what it
+computed it from — and that anonymity, not staleness, was the defect (ADR 0003).
+_Avoid_: cache key, etag, version (nothing is compared for age — only for
+identity of the source value).
+
 **Reference case**:
 A worked instance used to check the block against a real design rather than
 against itself. The first is derico.de's closing call to action —

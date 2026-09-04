@@ -27,6 +27,7 @@ from zope.interface import alsoProvides
 
 from derico.blicca.promoblock.blocks import PROMO_BLOCK_TYPE
 from derico.blicca.promoblock.image_transform import DERIVED_FIELDS
+from derico.blicca.promoblock.image_transform import stored_image
 from derico.blicca.promoblock.interfaces import IDericoBliccaPromoblockLayer
 
 
@@ -111,6 +112,10 @@ class TestResolution(PromoTransformTestCase):
         assert value["image_field"] == "image"
         assert value["image_scales"]["image"][0]["base_path"] == "/plone/pic"
         assert value["image_url"].startswith("/plone/pic/@@images/image")
+        # ADR 0003: what the other three were derived FROM, normalized the way
+        # the client's own `storedImage()` normalizes, so the canvas can tell
+        # this set is about the picture the author has now.
+        assert value["image_ref"] == stored_image(stored)
         # The stored value itself is NEVER rewritten. Round-trip identity
         # depends on it, and every other restapi transformer does rewrite.
         assert value["image"] == stored
@@ -171,32 +176,42 @@ class TestAnonymousResolution(PromoTransformTestCase):
 
 
 class TestValuesThatYieldNoScales(PromoTransformTestCase):
+    """No renderable picture — but, since ADR 0003, still a provenance stamp.
+
+    *Stamp present, ``image_url`` absent* is a fact the client could not learn
+    before: the server looked at this exact reference and got nothing. So
+    "nothing at all" is now precisely one key.
+    """
+
+    def assert_only_the_stamp(self, value, stored):
+        assert value["image_ref"] == stored
+        for key in DERIVED_FIELDS:
+            if key != "image_ref":
+                assert key not in value
+
     def test_an_external_url_is_kept_whole(self):
         """path_of() would strip the host off a genuinely external image."""
         external = "https://example.com/logo.png"
         value = self.serialize(self.promo(image=external))
         assert value["image_url"] == external
+        assert value["image_ref"] == external
         assert "image_scales" not in value
         assert "image_field" not in value
 
-    def test_a_dangling_reference_yields_nothing_at_all(self):
+    def test_a_dangling_reference_yields_the_stamp_alone(self):
         """A deleted image draws the no-image layout, not a guaranteed 404."""
-        value = self.serialize(self.promo(image=f"../resolveuid/{UNKNOWN_UID}"))
-        for key in DERIVED_FIELDS:
-            assert key not in value
+        stored = f"../resolveuid/{UNKNOWN_UID}"
+        self.assert_only_the_stamp(self.serialize(self.promo(image=stored)), stored)
 
-    def test_a_deleted_target_yields_nothing_at_all(self):
+    def test_a_deleted_target_yields_the_stamp_alone(self):
         stored = f"../resolveuid/{self.image.UID()}"
         api.content.delete(obj=self.image)
-        value = self.serialize(self.promo(image=stored))
-        for key in DERIVED_FIELDS:
-            assert key not in value
+        self.assert_only_the_stamp(self.serialize(self.promo(image=stored)), stored)
 
-    def test_referenced_content_carrying_no_image_yields_nothing(self):
+    def test_referenced_content_carrying_no_image_yields_the_stamp_alone(self):
         """``base`` would be a page URL, not a picture."""
-        value = self.serialize(self.promo(image=f"../resolveuid/{self.doc.UID()}"))
-        for key in DERIVED_FIELDS:
-            assert key not in value
+        stored = f"../resolveuid/{self.doc.UID()}"
+        self.assert_only_the_stamp(self.serialize(self.promo(image=stored)), stored)
 
     @pytest.mark.parametrize("empty", [None, "", "   ", []])
     def test_an_unset_image_is_left_alone(self, empty):
@@ -245,6 +260,57 @@ class TestStaleDerivedData(PromoTransformTestCase):
         assert value["image_scales"]["image"][0]["base_path"] == "/plone/pic"
 
 
+class TestProvenanceStamp(PromoTransformTestCase):
+    """ADR 0003: every derived set says what it was derived FROM.
+
+    The stamp exists so the canvas can tell a fresh derived set from one
+    describing a picture the author has since replaced, WITHOUT ``edit`` ever
+    writing to the document. Its four shapes are covered above; what is left
+    is the rule itself — normalized, present wherever a reference is, absent
+    where there is none, and never persisted.
+    """
+
+    def test_the_stamp_is_the_normalized_value_not_the_raw_one(self):
+        # The client compares against its own `storedImage()`, so a legacy
+        # shape has to arrive at the same string on both sides or every such
+        # node would read as stale forever.
+        absolute = self.image.absolute_url()
+        for stored in (absolute, {"@id": absolute}, [{"@id": absolute}], f"  {absolute}  "):
+            value = self.serialize(self.promo(image=stored))
+            assert value["image_ref"] == absolute, stored
+
+    @pytest.mark.parametrize("empty", [None, "", "   ", [], 42])
+    def test_no_image_means_no_stamp(self, empty):
+        # A promo with nothing chosen stamps nothing: there is no reference to
+        # name, and an empty stamp would read as a matching one on the client.
+        assert "image_ref" not in self.serialize(self.promo(image=empty))
+
+    def test_a_stale_stamp_is_stripped_before_the_new_one_is_derived(self):
+        stale = self.promo(
+            image=f"../resolveuid/{self.image.UID()}",
+            image_ref="../resolveuid/some-other-picture",
+        )
+        value = self.serialize(stale)
+        assert value["image_ref"] == stale["image"]
+
+    def test_a_resolution_that_blows_up_still_stamps(self, monkeypatch):
+        # The failure branch is stamped for the same reason the dangling one
+        # is: the server DID look at this reference, and the page a visitor
+        # gets is the no-image layout either way. Left unstamped, the canvas
+        # would read the node as never-loaded and preview a picture the public
+        # page does not show.
+        import derico.blicca.promoblock.image_transform as module
+
+        def explode(context, stored):
+            raise RuntimeError("catalog is on fire")
+
+        monkeypatch.setattr(module, "derived_image_fields", explode)
+        stored = f"../resolveuid/{self.image.UID()}"
+        value = self.serialize(self.promo(image=stored))
+        assert value["image_ref"] == stored
+        assert "image_url" not in value
+
+
 class TestDispatch(PromoTransformTestCase):
     """The pair claims ``promo`` and nothing else."""
 
@@ -284,6 +350,7 @@ class TestDeserializer(PromoTransformTestCase):
             image_scales={"image": [{"download": "x"}]},
             image_field="image",
             image_url="/plone/pic/@@images/image",
+            image_ref="/plone/pic",
         )
         value = self.deserialize(enriched)
         for key in DERIVED_FIELDS:

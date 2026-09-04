@@ -1,7 +1,7 @@
 """The Promo's public renderer — registration, and the anatomy it must emit.
 
 The headline test is ``TestAnatomy``: every case in ``tests/anatomy-cases.json``
-at the package root, the same 25 hand-authored cases
+at the package root, the same 26 hand-authored cases
 ``bundle-src/test/promo-anatomy.test.tsx`` holds the React renderer to. Ticket
 17 exists so the two renderers cannot diverge; this file and that one are how
 the two halves of that promise are kept.
@@ -9,7 +9,7 @@ the two halves of that promise are kept.
 The fixture is read twice over, the same way the vitest suite reads it:
 
 - **Exactly**, up to attribute order, wherever the two renderers are expected
-  to emit identical attributes — which is 24 of the 25 cases.
+  to emit identical attributes — which is 25 of the 26 cases.
 - **As a skeleton** — the markup with every attribute but ``class`` removed,
   text kept — for every case without exception. That is the cross-renderer
   contract, and it is what lets this renderer carry a real resolution ladder in
@@ -175,7 +175,7 @@ class TestAnatomy(PromoViewTestCase):
     def test_the_fixture_covers_the_states_the_tables_enumerate(self):
         # A floor, not a total: deleting a case is how a renderer stops being
         # held to a row of the table, and that must not pass unnoticed.
-        assert len(CASES) >= 23
+        assert len(CASES) >= 26
         assert len({case["name"] for case in CASES}) == len(CASES)
         assert all(case["note"] for case in CASES)
         # Every exemption names a case that exists, and carries its reason.
@@ -185,9 +185,12 @@ class TestAnatomy(PromoViewTestCase):
     @pytest.mark.parametrize("case", CASES, ids=lambda case: case["name"])
     def test_matches_the_cross_renderer_skeleton(self, case):
         # `reactOnly` marks the one case where the two renderers legitimately
-        # differ: a dangling reference has no image_url, so THIS renderer draws
-        # the no-image layout (`html`) while the canvas previews the raw
-        # reference. The fixture's `html` is always the server's expectation.
+        # differ, and since ADR 0003 it is no longer the dangling reference —
+        # that one is stamped and both surfaces draw the no-image layout. It is
+        # the node this renderer never receives: a freshly picked image, with
+        # no derived set and so no stamp, which the canvas previews
+        # optimistically. The fixture's `html` is always the server's
+        # expectation.
         assert skeleton(self.render(case["data"])) == skeleton(case["html"])
         if case.get("reactOnly"):
             assert case["reactOnly"]["why"]
@@ -570,6 +573,9 @@ class TestThePicture(PromoViewTestCase):
     def test_a_dangling_reference_draws_the_no_image_layout(self):
         # Ticket 10's signal: a reference whose target was deleted yields no
         # image_url at all, so the server shows no picture rather than a
-        # guaranteed 404. This is the one case the fixture marks `reactOnly`.
+        # guaranteed 404. Since ADR 0003 the canvas draws the same thing —
+        # the serializer stamps `image_ref` even here, which is how the client
+        # learns the server looked and got nothing. Nothing on THIS side reads
+        # the stamp: the server never guessed, so it has nothing to stop doing.
         markup = self.render({"title": "Plone", "image": "../resolveuid/gone"})
         assert "promo-image" not in markup

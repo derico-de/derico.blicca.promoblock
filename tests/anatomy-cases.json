@@ -32,7 +32,13 @@
     "canvas-safety rule), and nothing else changed.",
     "",
     "`reactOnly` marks the single case where the two renderers legitimately",
-    "differ, with the reason. Extended together with both suites or not at all."
+    "differ, with the reason. Extended together with both suites or not at all.",
+    "",
+    "Since ADR 0003 every case here carries `image_ref` beside its other derived",
+    "keys, because that is what the serializer emits — the stamp naming the",
+    "reference the set was derived from. The one `reactOnly` case is the node the",
+    "server has NEVER serialized: an unstamped, freshly picked image, which the",
+    "canvas previews optimistically and the server would draw as no image at all."
   ],
   "cases": [
     {
@@ -64,6 +70,7 @@
       "note": "No copy at all, so promo-copy is absent — a picture and nothing else.",
       "data": {
         "image": "../resolveuid/8f2c1a9e",
+        "image_ref": "../resolveuid/8f2c1a9e",
         "image_url": "/pic.jpg/@@images/image/large"
       },
       "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"/pic.jpg/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture></div>"
@@ -73,6 +80,7 @@
       "note": "The realistic post-serialization node: ticket 10's three keys plus the base_path it stamps into every scale entry. The React half emits image_url as a single src by decision (no `sizes` policy is available to it); ticket 09 builds the ladder from image_scales. The two agree on the ANATOMY, which is what the skeleton compares.",
       "data": {
         "image": "../resolveuid/8f2c1a9e",
+        "image_ref": "../resolveuid/8f2c1a9e",
         "image_url": "/pic.jpg/@@images/image/large",
         "image_field": "image",
         "image_scales": {
@@ -100,6 +108,7 @@
       "note": "Reference case B's shape: `left` placement with an image, one action.",
       "data": {
         "image": "../resolveuid/8f2c1a9e",
+        "image_ref": "../resolveuid/8f2c1a9e",
         "image_url": "/pic.jpg/@@images/image/large",
         "head_title": "Open Source",
         "title": "Plone für langlebige Anwendungen",
@@ -125,6 +134,7 @@
       "note": "A placement the widget cannot produce falls back, rather than emitting a class no sheet dresses.",
       "data": {
         "image": "../resolveuid/8f2c1a9e",
+        "image_ref": "../resolveuid/8f2c1a9e",
         "image_url": "/pic.jpg/@@images/image/large",
         "align": "top"
       },
@@ -253,6 +263,7 @@
       "note": "Ticket 10 emits a free-text external URL whole — path_of() would strip the host off it — and nothing is appended, because @@images on an external picture is a guaranteed 404.",
       "data": {
         "image": "https://plone.org/logo.png",
+        "image_ref": "https://plone.org/logo.png",
         "image_url": "https://plone.org/logo.png"
       },
       "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"https://plone.org/logo.png\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture></div>"
@@ -262,21 +273,33 @@
       "note": "The image field is a free-text surface in Aurora too (ticket 01), so it is screened as well — relative, http and https only.",
       "data": {
         "title": "Plone",
-        "image": "javascript:alert(1)"
+        "image": "javascript:alert(1)",
+        "image_ref": "javascript:alert(1)",
+        "image_url": "javascript:alert(1)"
       },
       "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
     },
     {
       "name": "image-dangling-reference",
-      "note": "Ticket 10: a reference whose target was deleted yields no image_url at all, so the server draws the no-image layout. The canvas cannot tell that apart from an image picked one second ago and previews it anyway — the one stated divergence, argued in imageSrc's docstring. Editor-only and self-correcting.",
+      "note": "Ticket 10: a reference whose target was deleted yields no image_url at all, so the server draws the no-image layout. ADR 0003 (ticket 21) made this case AGREE: the stamp is emitted even where nothing resolved, so `image_ref` present with `image_url` absent tells the canvas the server looked at this exact reference and got nothing. It was the fixture's one `reactOnly` case and is now an ordinary one.",
       "data": {
         "title": "Plone",
-        "image": "../resolveuid/gone"
+        "image": "../resolveuid/gone",
+        "image_ref": "../resolveuid/gone"
+      },
+      "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+    },
+    {
+      "name": "image-just-picked",
+      "note": "The only node with an image that no serializer emits, and therefore the only place the two renderers legitimately differ (ADR 0003): the author picked a picture one second ago, so `image` is set and there is no derived set at all — no url and, crucially, no stamp. The canvas previews it through the reference, which is what rungs 2 to 4 of imageSrc exist for; the server never sees this node, and drawing it as no-image is what it would honestly do with one.",
+      "data": {
+        "title": "Plone",
+        "image": "../resolveuid/8f2c1a9e"
       },
       "html": "<div class=\"promo has--align--center\"><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>",
       "reactOnly": {
-        "why": "No server has run behind this node, so imageSrc takes step 2 and previews the raw reference.",
-        "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"../resolveuid/gone/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
+        "why": "No server has run behind this node — no `image_ref`, so nothing to trust and nothing to disbelieve — and imageSrc takes rung 2 and previews the raw reference. The optimistic case, and the common one.",
+        "html": "<div class=\"promo has--align--center\"><picture class=\"promo-image\"><img src=\"../resolveuid/8f2c1a9e/@@images/image/large\" alt=\"\" decoding=\"async\" loading=\"lazy\"></picture><div class=\"promo-copy\"><h2 class=\"promo-title\">Plone</h2></div></div>"
       }
     },
     {
@@ -305,6 +328,7 @@
         "title": "Plone für langlebige Anwendungen",
         "description": "Ein CMS, das seit über zwanzig Jahren migrierbar bleibt.",
         "image": "../resolveuid/8f2c1a9e",
+        "image_ref": "../resolveuid/8f2c1a9e",
         "image_url": "/pic.jpg/@@images/image/large",
         "align": "left",
         "card_link": "/leistungen/plone",

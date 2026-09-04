@@ -57,8 +57,8 @@ this block's root. The block never emits them.
 
 The `image` field is deliberately named `image` so field-id resolution hands it
 **the host's own image widget** — registered in Blicca and in Aurora proper,
-upload included. Owning the name means inheriting the widget's shape, and two
-parts of that shape surprise people:
+upload included. Owning the name means inheriting the widget's shape, and one
+part of that shape surprises people:
 
 - **It carries no label and shows no current selection.** In the sidebar the
   field is a bare "Select or upload" button between Description and Image
@@ -68,24 +68,32 @@ parts of that shape surprise people:
   identical for every block that takes an image, so the Promo leaves it alone:
   wrapping it would mean re-implementing the upload, which is the one thing
   naming the field `image` was chosen to avoid. Report it upstream, not here.
-- **A freshly picked picture does not appear until the next load.** The picker
-  writes `image`; the derived `image_url` the preview reads is stamped on
-  **load** by the serializer, so a promo that already had a picture keeps
-  showing the old one until save and reload. A promo that had none previews at
-  once, through the reference. Both are correct on the published page from the
-  first save.
+
+Only the reference is stored. Everything renderable about the picture —
+`image_url`, `image_scales`, `image_field` — is **derived on load** by the
+block's serializer and stripped again on save, so none of it is ever on disk.
+A fourth derived key, `image_ref`, carries the reference the other three were
+derived *from*; that is what lets the canvas tell a derived set that is about
+the picture the author has now from one describing the picture they just
+replaced, without the editor ever writing to the document. The rules that
+follow from it, in author-visible terms:
+
+- A picture you have just chosen previews **immediately**, through the
+  reference itself — including one that replaces a picture already there.
+- A picture whose target has been **deleted** stops being drawn as soon as the
+  promo is reloaded: the block reflows to the no-image layout the visitor
+  already gets, and the canvas says so in a notice.
+- No derived key is ever offered in the sidebar, and typing one into the JSON
+  is pointless: the next save discards it.
 
 ### Where the two surfaces really differ
 
-Two, both measured on a running site, and neither of them cosmetic drift:
-
-1. **A picture whose target was deleted.** The server sees no `image_url` and
-   draws the no-image layout — no `<picture>`, and `has--align--center`, because
-   a promo with nothing to place has no placement. The canvas cannot tell that
-   apart from a picture chosen one second ago, so it keeps the placement and
-   previews the reference, which 404s. The page a visitor gets is always the
-   server's.
-2. **The title's weight**, for the reason under "Not themeable, on purpose".
+One, measured on a running site, and it is not cosmetic drift: **the title's
+weight**, for the reason under "Not themeable, on purpose". A picture whose
+target was deleted used to be the other entry — the canvas kept previewing a
+reference that 404s while the page showed no picture at all — and `image_ref`
+closed it: both surfaces now draw the same no-image layout for it. The page a
+visitor gets is always the server's regardless.
 
 ## What "works in Aurora" means here
 
@@ -260,7 +268,8 @@ the wrapper, correctly full-bleed.
   the title is the theme's `h2` weight on the published page (600 under
   Barceloneta) and the editor's body weight in the canvas, because Plate's
   preflight flattens headings. It is the price of not scope-locking the
-  weight, and one of the two places the surfaces do not look identical — see
+  weight, and since `image_ref` closed the other one it is the only place the
+  surfaces do not look identical — see
   "Where the two surfaces really differ".
 
 ### Where the two-column placements collapse

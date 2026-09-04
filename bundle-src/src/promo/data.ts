@@ -34,6 +34,12 @@ export type PromoData = {
   image_url?: unknown;
   image_scales?: unknown;
   image_field?: unknown;
+  /**
+   * The provenance stamp (ADR 0003): the normalized `image` the other three
+   * were derived FROM. Derived like them, stripped on save like them, and
+   * never written on this side — `edit` writes nothing at all.
+   */
+  image_ref?: unknown;
 };
 
 /** The two action slots, in sidebar order. "primary" names appearance, not rank. */
@@ -155,6 +161,23 @@ export function cardLink(data: PromoData): string {
 
 /* ── the image ──────────────────────────────────────────────────────────── */
 
+/**
+ * Every key the serializer injects and the deserializer strips — the whole
+ * derived set, named on this side so it can be held level with the Python
+ * spelling (`image_transform.DERIVED_FIELDS`).
+ *
+ * ADR 0003's stated failure mode is a key added on one side only: this list
+ * and that tuple are compared by `TestScreenParity`, and the schema suite
+ * reads this one to assert that no derived key is ever offered to an author.
+ * PARITY: extended together or not at all.
+ */
+export const DERIVED_KEYS = [
+  'image_scales',
+  'image_field',
+  'image_url',
+  'image_ref',
+] as const;
+
 /** The stored reference as a string, reading the legacy shapes the host's own
  *  `normalizeImageValue` reads. We never write those shapes back. */
 export function storedImage(value: unknown): string {
@@ -175,6 +198,21 @@ function apiPath(): string {
 }
 
 /**
+ * Is the derived key set about the image the author has now? (ADR 0003.)
+ *
+ * The comparison is `image_ref` against `storedImage(data.image)` — this
+ * side's own normalization, the parity twin of the server's `stored_image()`
+ * — rather than a third spelling of the same rule. False for every node the
+ * server has not serialized, which is exactly when the derived keys must not
+ * be trusted: `edit` never writes one, so an unstamped node is either freshly
+ * picked or pre-dates the stamp, and both want the optimistic ladder.
+ */
+export function derivedAreCurrent(data: PromoData): boolean {
+  const stamp = text(data.image_ref);
+  return stamp !== '' && stamp === storedImage(data.image);
+}
+
+/**
  * The `<img src>` for this promo, on the React surface.
  *
  * DECIDED HERE (this ticket asked for it). Ticket 10's three derived keys
@@ -191,10 +229,15 @@ function apiPath(): string {
  *
  * The rule, in order:
  *
- *  1. **`image_url`** — ticket 10's always-usable key. Present ⇒ the promo was
- *     loaded from the server and this is the honest answer for both an
- *     in-site picture and a free-text external one. Its absence is that
- *     ticket's signal for "no image", including a dangling reference.
+ *  0. **The derived set, if it is about the value the author has now** — the
+ *     provenance check (ADR 0003). `image_ref` carries the reference the
+ *     server derived from, so a matching stamp makes the whole derived set
+ *     authoritative: `image_url` is the honest answer for both an in-site
+ *     picture and a free-text external one, and its ABSENCE under a matching
+ *     stamp is the server saying it looked at this exact reference and got
+ *     nothing — a dangling reference, drawn as the no-image layout. A
+ *     mismatched or missing stamp says the keys are not about this value, and
+ *     the ladder falls through to the rungs below.
  *  2. a **resolveuid** reference ⇒ append the scale and leave the value
  *     relative. Blicca's own `ImageWidget` documents why this resolves: the
  *     `resolveuid` view is registered `for="*"` and `ResolveUIDView` collects
@@ -213,20 +256,24 @@ function apiPath(): string {
  * know. The public page's ladder is the server half's job; adding a `srcset`
  * here later is additive and invisible to the stylesheet (ticket 17).
  *
- * THE ONE STATED DIVERGENCE FROM THE SERVER HALF. Ticket 10 makes the absence
- * of `image_url` its signal for "the picture is gone", so the server draws the
- * no-image layout for a dangling reference. This surface cannot tell that
- * apart from an image picked one second ago — both are `image` set with no
- * derived keys — and step 2 resolves the ambiguity in favour of the common
- * case, so a promo whose target was deleted keeps a `.promo-image` in the
- * canvas until the next load and shows a broken picture there. The two
- * renderers still agree on every node the server has serialized, which is
- * what anatomy parity is a claim about; this window is editor-only,
- * self-correcting, and named on the canvas by `warnings()`.
+ * WHY THE CHECK, AND WHAT IT BOUGHT. Ticket 08 shipped rung 1 unconditional
+ * and accepted one divergence for it: a dangling reference and an image picked
+ * one second ago are both `image` set with no usable `image_url`, so the canvas
+ * guessed in favour of the common case and previewed a picture the server had
+ * already given up on. ADR 0003 named the real defect — a derived key that
+ * says what the server computed and not what it computed it FROM — and the
+ * stamp closes it in both directions at once: a replaced picture no longer
+ * previews as the old one, and a deleted one now draws what the visitor gets.
+ * The two renderers therefore agree on every node the server has serialized,
+ * with no exception left to state. What remains outside that claim is the node
+ * the server has NEVER serialized — a freshly picked image, carrying no stamp
+ * — where this ladder previews optimistically, which is the whole reason rungs
+ * 2 to 4 exist.
  */
 export function imageSrc(data: PromoData): string {
-  const derived = screenImage(data.image_url);
-  if (derived) return derived;
+  // Rung 0. A matching stamp makes the derived set final — including the empty
+  // answer, which is the dangling reference the server already resolved for us.
+  if (derivedAreCurrent(data)) return screenImage(data.image_url);
 
   const stored = screenImage(storedImage(data.image));
   if (!stored) return '';
@@ -293,17 +340,39 @@ export function missing(data: PromoData): string[] {
  * link that fails the Q7 screen), and an image value that is not a picture URL
  * at all.
  *
- * A **dangling** image reference is deliberately NOT here: on this surface it
- * is indistinguishable from a just-picked one (see `imageSrc`), so claiming it
- * would mean crying wolf on the common case.
+ * A **dangling** image reference is here since ADR 0003, and only since then:
+ * the notice is honest exactly when the provenance stamp makes it a fact
+ * rather than a guess. Without the stamp this surface cannot tell a deleted
+ * target from a picture chosen one second ago, so the same sentence would have
+ * fired on the common case — which is why ticket 08 was right to omit it and
+ * this one is right to carry it. An unstamped reference still says nothing.
  */
 export function warnings(data: PromoData): string[] {
   const notes: string[] = [];
   const picture = storedImage(data.image);
   if (picture && !hasImage(data)) {
-    notes.push(
-      `\u201c${picture}\u201d is not a kind of picture this block can show.`,
-    );
+    // Two different mistakes, and only the stamp separates them: a value that
+    // is not a picture URL at all is the author's typo, while a value that
+    // passes the screen and still resolves to nothing is a picture that was
+    // deleted out from under this promo. Unstamped, the second is unknowable
+    // and falls to the first — but so does nothing, because an unstamped
+    // reference that passes the screen has already produced an `<img src>`.
+    if (derivedAreCurrent(data) && screenImage(picture)) {
+      // Deliberately NOT quoting the value, unlike the sentence below. This
+      // case is only ever reached through a PICKED reference — an author-typed
+      // URL is emitted whole and never dangles — so the stored value is a
+      // `../resolveuid/<uid>` the author has never seen and cannot act on, and
+      // the picture it named is deleted, so there is no title left to offer
+      // instead. Seen on the running site (ticket 22); the quote below stays,
+      // because there the value IS what the author typed.
+      notes.push(
+        'The picture this promo points at no longer exists, so it renders without one.',
+      );
+    } else {
+      notes.push(
+        `\u201c${picture}\u201d is not a kind of picture this block can show.`,
+      );
+    }
   }
   for (const slot of CTA_SLOTS) {
     const label = labelOf(data, slot);

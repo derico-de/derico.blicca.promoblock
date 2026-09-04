@@ -24,7 +24,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import PromoView from '../src/promo/PromoView';
-import { imageSrc, type PromoData } from '../src/promo/data';
+import { derivedAreCurrent, imageSrc, warnings, type PromoData } from '../src/promo/data';
 
 /* ── the shared fixture ─────────────────────────────────────────────────── */
 
@@ -98,7 +98,7 @@ describe('the shared anatomy fixture', () => {
     // A floor, not a total: the point is that a case DELETED from the fixture
     // is noticed, since deleting one is how a renderer stops being held to a
     // row of the table.
-    expect(CASES.length).toBeGreaterThanOrEqual(23);
+    expect(CASES.length).toBeGreaterThanOrEqual(26);
     expect(new Set(CASES.map((entry) => entry.name)).size).toBe(CASES.length);
     for (const entry of CASES) expect(entry.note, entry.name).toBeTruthy();
   });
@@ -143,11 +143,24 @@ describe('the shared anatomy fixture', () => {
 const promo = (data: PromoData) =>
   render(<PromoView data={data} />).container.querySelector('.promo')!;
 
+/**
+ * A picture as the server actually serves one: the stored reference, the
+ * provenance stamp naming it, and the URL it resolved to (ADR 0003). Anything
+ * less is a node no serializer emits — `image_url` alone is now ignored, which
+ * is the whole point of the stamp — so every "has an image" case below is
+ * spelled with all three rather than with the derived key on its own.
+ */
+const SERVED = {
+  image: '../resolveuid/8f2c1a9e',
+  image_ref: '../resolveuid/8f2c1a9e',
+  image_url: '/pic.jpg/@@images/image/large',
+} as const;
+
 const FULL: PromoData = {
   head_title: 'Kontakt',
   title: 'Erstgespräch vereinbaren',
   description: 'Ein Satz.',
-  image_url: '/pic.jpg/@@images/image/large',
+  ...SERVED,
   align: 'left',
   cta_primary_label: 'Termin',
   cta_primary_link: '/kontakt',
@@ -185,10 +198,10 @@ describe('the root', () => {
     for (const [data, expected] of [
       [{}, 'center'],
       [{ align: 'left' }, 'center'],
-      [{ image_url: '/p' }, 'center'],
-      [{ image_url: '/p', align: 'left' }, 'left'],
-      [{ image_url: '/p', align: 'right' }, 'right'],
-      [{ image_url: '/p', align: 'center' }, 'center'],
+      [{ ...SERVED }, 'center'],
+      [{ ...SERVED, align: 'left' }, 'left'],
+      [{ ...SERVED, align: 'right' }, 'right'],
+      [{ ...SERVED, align: 'center' }, 'center'],
     ] as Array<[PromoData, string]>) {
       expect(promo(data).classList.contains(`has--align--${expected}`)).toBe(true);
       expect([...promo(data).classList].filter((name) => name.startsWith('has--align--'))).toHaveLength(1);
@@ -196,7 +209,7 @@ describe('the root', () => {
   });
 
   it('emits no image-presence class — rule 2 says none is needed', () => {
-    const withImage = [...promo({ image_url: '/p' }).classList];
+    const withImage = [...promo({ ...SERVED }).classList];
     const without = [...promo({}).classList];
     expect(withImage).toEqual(without);
   });
@@ -245,7 +258,7 @@ describe('the elements', () => {
     // around nothing.
     const { container } = render(<PromoView data={{}} />);
     expect(container.innerHTML).toBe('<div class="promo has--align--center"></div>');
-    for (const data of [{ title: 'x' }, { image_url: '/p' }, { card_link: '/x' }]) {
+    for (const data of [{ title: 'x' }, { ...SERVED }, { card_link: '/x' }]) {
       const rendered = render(<PromoView data={data} />).container;
       rendered.querySelectorAll('div, p, h2, a, picture').forEach((element) => {
         if (element.classList.contains('promo')) return;
@@ -320,9 +333,14 @@ describe('the click rule, in all four label/link combinations', () => {
 describe('imageSrc, the canvas preview rule', () => {
   // Ticket 08 decided this; the fixture cases exercise steps 1 and 4, and
   // these cover the derivations no serialized node can reach.
-  it('prefers ticket 10s image_url over the raw reference', () => {
-    expect(imageSrc({ image: '../resolveuid/abc', image_url: '/pic/@@images/image/x' }))
-      .toBe('/pic/@@images/image/x');
+  it('prefers a STAMPED image_url over the raw reference', () => {
+    expect(
+      imageSrc({
+        image: '../resolveuid/abc',
+        image_ref: '../resolveuid/abc',
+        image_url: '/pic/@@images/image/x',
+      }),
+    ).toBe('/pic/@@images/image/x');
   });
 
   it('appends the preview scale to a resolveuid reference, and keeps it relative', () => {
@@ -374,5 +392,74 @@ describe('imageSrc, the canvas preview rule', () => {
     for (const value of [undefined, null, '', '   ', 42, [], {}, 'mailto:x@y', 'javascript:x']) {
       expect(imageSrc({ image: value })).toBe('');
     }
+  });
+});
+
+describe('the provenance stamp, ADR 0003', () => {
+  const OLD = '../resolveuid/before';
+  const NEW = '../resolveuid/after';
+
+  it('trusts the derived set only while the stamp names the stored value', () => {
+    expect(derivedAreCurrent({ image: OLD, image_ref: OLD })).toBe(true);
+    expect(derivedAreCurrent({ image: NEW, image_ref: OLD })).toBe(false);
+    // An unstamped node is every node the server has not served, and a stamped
+    // one with no image is not a node at all.
+    expect(derivedAreCurrent({ image: OLD })).toBe(false);
+    expect(derivedAreCurrent({ image_ref: OLD })).toBe(false);
+    expect(derivedAreCurrent({})).toBe(false);
+  });
+
+  it('normalizes both sides, so the legacy shapes still match their stamp', () => {
+    // The stamp is `stored_image()`'s output on the server and is compared
+    // against `storedImage()` here — the existing parity pair, not a third
+    // spelling of the normalization.
+    expect(derivedAreCurrent({ image: [{ '@id': '/pic.jpg' }], image_ref: '/pic.jpg' })).toBe(true);
+    expect(derivedAreCurrent({ image: '  /pic.jpg  ', image_ref: '/pic.jpg' })).toBe(true);
+  });
+
+  it('previews the NEW picture the moment the author replaces one', () => {
+    // The divergence that "looks fine and is wrong": before the stamp, the
+    // load-time image_url won rung 1 and the canvas kept showing the picture
+    // the author had just replaced.
+    expect(
+      imageSrc({ image: NEW, image_ref: OLD, image_url: '/before.jpg/@@images/image/large' }),
+    ).toBe(`${NEW}/@@images/image/large`);
+  });
+
+  it('draws no picture at all for a stamped reference that resolved to nothing', () => {
+    // *Stamp present, image_url absent* — the server looked at this exact
+    // reference and got nothing. Byte-parity with its no-image layout, which
+    // is the exception the parity claim used to state.
+    expect(imageSrc({ image: OLD, image_ref: OLD })).toBe('');
+  });
+
+  it('still previews optimistically with no stamp at all', () => {
+    // Rungs 2 to 4 are not weakened: a freshly picked image carries no derived
+    // set, and that is the common case, not the broken one.
+    expect(imageSrc({ image: OLD })).toBe(`${OLD}/@@images/image/large`);
+  });
+
+  it('screens a stamped image_url like any other', () => {
+    for (const bad of ['javascript:alert(1)', 'mailto:x@y', '//evil.example/p.png']) {
+      expect(imageSrc({ image: bad, image_ref: bad, image_url: bad })).toBe('');
+    }
+  });
+
+  it('names a confirmed dead reference, and only a confirmed one', () => {
+    const dead = warnings({ image: OLD, image_ref: OLD });
+    expect(dead).toHaveLength(1);
+    expect(dead[0]).toMatch(/no longer exists/);
+    // The stored value is a resolveuid the author never typed and the picture
+    // it named is gone, so there is nothing worth quoting (ticket 22, found on
+    // the running site). The typo sentence below still quotes, and must.
+    expect(dead[0]).not.toContain(OLD);
+    // Unstamped: unknowable, so unsaid — the notice would otherwise fire on
+    // every picture chosen in the last second.
+    expect(warnings({ image: OLD })).toEqual([]);
+    // Stamped but not a picture URL at all: the author's typo, which has its
+    // own sentence and must not be reported as a deletion.
+    expect(warnings({ image: 'javascript:x', image_ref: 'javascript:x' })).toEqual([
+      '\u201cjavascript:x\u201d is not a kind of picture this block can show.',
+    ]);
   });
 });

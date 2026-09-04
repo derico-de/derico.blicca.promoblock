@@ -29,6 +29,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import PromoSchema from '../src/promo/schema';
+import { DERIVED_KEYS } from '../src/promo/data';
 import { choicesWidgetOf, installUpstreamRegistry } from './upstream-registry';
 
 const upstream = installUpstreamRegistry(config as any);
@@ -269,6 +270,15 @@ describe('reference case A — the contact band (ticket 13)', () => {
 describe('reference case B — the picture beside the copy (ticket 14)', () => {
   const promo = CASES.find((entry) => entry.name === 'reference-case-image-beside-the-copy');
 
+  /**
+   * Every key the serializer injects — never authored, never persisted, never
+   * offered. Read from the source rather than restated, so the loops below
+   * skip exactly the set the transformer stamps: `image_ref` (ADR 0003's
+   * provenance stamp) joined it late, and a loop that skipped only `image_url`
+   * would have demanded a sidebar field for the stamp.
+   */
+  const DERIVED: readonly string[] = DERIVED_KEYS;
+
   it('is in the shared fixture, which is what the rest of this block reads', () => {
     expect(promo, 'reference-case-image-beside-the-copy missing from the fixture').toBeDefined();
   });
@@ -287,8 +297,8 @@ describe('reference case B — the picture beside the copy (ticket 14)', () => {
   it('is offered field for field, so nothing in it is JSON only', () => {
     const offered = PromoSchema({ formData: promo!.data }).fieldsets.flatMap((f) => f.fields);
     for (const field of Object.keys(promo!.data)) {
-      // `image_url` is ticket 10's injection, handled below.
-      if (field === 'image_url') continue;
+      // Ticket 10's injections, handled below.
+      if (DERIVED.includes(field)) continue;
       expect(offered, field).toContain(field);
     }
   });
@@ -299,7 +309,7 @@ describe('reference case B — the picture beside the copy (ticket 14)', () => {
     // stripped by the deserializer on every save, so a sidebar field for it
     // would let an author type a value the next save silently discards.
     const offered = PromoSchema({ formData: promo!.data }).fieldsets.flatMap((f) => f.fields);
-    for (const derived of ['image_url', 'image_scales', 'image_field']) {
+    for (const derived of DERIVED) {
       expect(offered, derived).not.toContain(derived);
     }
   });
@@ -312,7 +322,7 @@ describe('reference case B — the picture beside the copy (ticket 14)', () => {
     expect(offered).toContain('blockWidth');
     expect(Object.keys(promo!.data)).not.toContain('backgroundColor');
     for (const field of Object.keys(promo!.data)) {
-      if (field === 'image_url') continue;
+      if (DERIVED.includes(field)) continue;
       expect(offered, `${field} is not authorable in Aurora proper`).toContain(field);
     }
   });

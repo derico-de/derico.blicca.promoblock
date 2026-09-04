@@ -57,9 +57,12 @@ function apiPath() {
   const settings = config.settings;
   return text(settings?.apiPath).replace(/\/+$/, "");
 }
+function derivedAreCurrent(data) {
+  const stamp = text(data.image_ref);
+  return stamp !== "" && stamp === storedImage(data.image);
+}
 function imageSrc(data) {
-  const derived = screenImage(data.image_url);
-  if (derived) return derived;
+  if (derivedAreCurrent(data)) return screenImage(data.image_url);
   const stored = screenImage(storedImage(data.image));
   if (!stored) return "";
   const scaled = `${stored.replace(/\/+$/, "")}/${PREVIEW_SCALE}`;
@@ -93,9 +96,15 @@ function warnings(data) {
   const notes = [];
   const picture = storedImage(data.image);
   if (picture && !hasImage(data)) {
-    notes.push(
-      `“${picture}” is not a kind of picture this block can show.`
-    );
+    if (derivedAreCurrent(data) && screenImage(picture)) {
+      notes.push(
+        "The picture this promo points at no longer exists, so it renders without one."
+      );
+    } else {
+      notes.push(
+        `“${picture}” is not a kind of picture this block can show.`
+      );
+    }
   }
   for (const slot of CTA_SLOTS$1) {
     const label = labelOf(data, slot);

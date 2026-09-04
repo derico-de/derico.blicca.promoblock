@@ -1,7 +1,7 @@
 # Build: the derived-key provenance stamp
 
 Type: build
-Status: open
+Status: resolved
 Blocked by: 19
 
 ## Question
@@ -64,4 +64,116 @@ changes. Confirmed in ticket 19 against the project rule.
 
 ## Answer
 
-<!-- fill in -->
+**Built (246 Python tests, 257 vitest, typecheck and build green); the stamp
+went one level up from where this ticket put it, and the strict reading of the
+provenance check cost a test habit that turned out to be fiction.**
+
+### Where the stamp lives, and why not where the ticket said
+
+The ticket asked `resolve_image()` to stamp `image_ref` in every branch that
+has a reference. It went to the serializer's `__call__` instead, on the line
+after the `if not stored: return value` guard and **outside the `try`** — so
+the stamp is emitted for the exception branch too. That branch exists because
+one unresolvable image must not break a whole page's serialization; it logs and
+falls through, and the page a visitor gets is the no-image layout. Left
+unstamped it would have read to the canvas as *never loaded*, and the canvas
+would have previewed a picture the public page does not show — which is the
+exact divergence this ticket removes, reintroduced through the one door nobody
+was looking at. Mutation-proved rather than argued: moving the stamp after the
+`update()` inside the `try` passes all 245 other Python tests and fails only
+`test_a_resolution_that_blows_up_still_stamps`.
+
+Consequence for the branches the ticket did enumerate: they need no change at
+all. `derived_image_fields()` still returns `{}` for a dangling reference and
+for content carrying no image, and the stamp is beside it either way — so
+*stamp present, `image_url` absent* is one rule with one implementation, not
+three branches that each have to remember it.
+
+### The client check is strict, and that invalidated a test habit
+
+`imageSrc`'s rung 1 became **rung 0**: `derivedAreCurrent(data)` — the stamp
+against this side's own `storedImage(data.image)`, the existing parity pair —
+and a match makes the derived set final **including its emptiness**. No stamp
+means the whole set is ignored, not merely a mismatched one, because ADR 0003's
+defect is anonymity: a derived key with no provenance is precisely the thing
+the client must not trust. It cannot occur in production anyway — nothing but
+this serializer writes one, and it always stamps.
+
+What that broke is worth recording, because it was hiding something. Several
+tests, in three files, spelled "this promo has a picture" as `{ image_url:
+'/p' }` — **a node no serializer can emit**, since `image_url` only ever
+appears where `image` is set. Under the strict check they render no picture at
+all. They are now spelled as a `SERVED` node — reference, stamp and resolved
+URL together — which is what the server actually hands the canvas. The fixture
+had the same habit in the other direction and gained the stamp in every picture
+case.
+
+### The parity exception moved rather than vanished
+
+`image-dangling-reference` **lost its `reactOnly`**: it is stamped now, both
+renderers draw the no-image layout, and the parity claim drops the exception it
+used to state — as the ticket predicted. But `reactOnly` is not dead machinery,
+and pretending it was would have been the dishonest way to close this. A 26th
+case, **`image-just-picked`**, is its honest home: `image` set, no derived set,
+no stamp — the node the server has *never* serialized, which the canvas
+previews optimistically and the server would draw as no image at all. So the
+exception moved from *a dangling reference* (a node the server serializes, and
+therefore inside the parity claim) to *a node no serializer emits* (outside it,
+which is what "the renderers agree on every node the server has serialized"
+always said). Both suites read the new case; the Python one asserts the
+server's `html` for it, as it does for every case.
+
+### Two mistakes, one notice each
+
+`warnings()` could not simply gain a row. A value that fails the image screen
+(`javascript:…`) and a reference the server confirmed dead both reach the same
+`picture && !hasImage` branch, and they are different mistakes with different
+fixes — a typo the author can retype, versus a picture somebody deleted out
+from under this promo. The screen wins where both would apply, so a stamped
+`javascript:` value still gets *"is not a kind of picture this block can show"*
+and never a deletion notice. An unstamped reference still says nothing at all,
+which is ticket 08's rule and is still right.
+
+### The lockstep the ADR asked for did not exist
+
+ADR 0003's last consequence says four keys must now stay level across two
+languages and that *"the existing parity tests are what hold them level"*. They
+did not: `DERIVED_FIELDS` was spelled in Python only, and the TypeScript side
+knew the keys as three optional fields on a type and one hardcoded list in a
+test. Fixed properly — `data.ts` exports `DERIVED_KEYS`, the schema suite reads
+it (so it is production code with a consumer, not a test constant), and
+`TestScreenParity` gained `test_the_derived_key_set_matches`, Python-reads-TS
+like the rest of that class. Mutation-checked: a fifth key added to the TS list
+alone fails it.
+
+### Everything else
+
+- **No upgrade step**, confirmed against the project rule: nothing here is
+  stored, no profile XML, registry record or GenericSetup artifact changes.
+  Round-trip identity still holds — the deserializer strips the fourth key with
+  the other three, and dropping it from `DERIVED_FIELDS` fails 5 tests.
+- **README**: both passages rewritten. "A freshly picked picture does not
+  appear until the next load" is gone from the widget's list of surprises —
+  it was never the widget's shape — and is replaced by a short account of what
+  is derived, what `image_ref` is for, and the three author-visible rules that
+  follow. "Where the two surfaces really differ" is down to one entry, and the
+  sentence elsewhere calling the title's weight "one of the two places" was
+  corrected in the same pass rather than left to go stale.
+- **CONTEXT.md** gained **Derived key** and **Provenance stamp**. Ticket 19
+  decided the rule and named neither; the block now has two more terms whose
+  `_Avoid_` lines rule out the readings that would undo them (cache key, etag,
+  version — nothing here is compared for *age*, only for identity of the source
+  value).
+- **Every guard mutation-checked, with a passing control**: rung 0 made
+  unconditional (9 vitest failures), a matching stamp with no URL falling
+  through instead of stopping (7), the dead-reference notice removed (2) and
+  the same notice fired without the stamp (2); server-side, the stamp removed
+  (12 Python failures), stamped only on success (1), and `image_ref` dropped
+  from `DERIVED_FIELDS` (5).
+
+**Not verified live.** Plone is not running in this environment and the project
+rule is not to start one unasked. Everything above is unit-level on both sides,
+and the replacement case is the one an author actually experiences — ticket 14
+found it *on* a running site and wrote it into the README as a limitation, so
+the README's new claim is the one thing here that has never been looked at in a
+browser. Raised as [ticket 22](22-verify-canvas-freshness-live.md).

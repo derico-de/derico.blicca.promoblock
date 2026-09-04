@@ -18,9 +18,16 @@ import { render } from '@testing-library/react';
 
 import PromoEdit from '../src/promo/PromoEdit';
 import PromoView from '../src/promo/PromoView';
-import { missing, warnings, type PromoData } from '../src/promo/data';
+import { imageSrc, missing, warnings, type PromoData } from '../src/promo/data';
 
 const html = (data: PromoData) => render(<PromoEdit data={data} />).container.innerHTML;
+
+/** A picture as the server serves one: reference, provenance stamp, url. */
+const SERVED = {
+  image: '../resolveuid/8f2c1a9e',
+  image_ref: '../resolveuid/8f2c1a9e',
+  image_url: '/pic.jpg/@@images/image/large',
+} as const;
 
 const REFERENCE_A: PromoData = {
   head_title: 'Kontakt',
@@ -44,7 +51,7 @@ describe('delegation', () => {
   });
 
   it('adds nothing at all once every slot is filled', () => {
-    const complete: PromoData = { ...REFERENCE_A, image_url: '/pic.jpg/@@images/image/large' };
+    const complete: PromoData = { ...REFERENCE_A, ...SERVED };
     expect(missing(complete)).toEqual([]);
     expect(warnings(complete)).toEqual([]);
     expect(html(complete)).toBe(
@@ -97,7 +104,7 @@ describe('the skeleton', () => {
 
   it('disappears slot by slot as the promo is filled in', () => {
     expect(missing({ ...REFERENCE_A })).toEqual(['image']);
-    expect(missing({ ...REFERENCE_A, image_url: '/p' })).toEqual([]);
+    expect(missing({ ...REFERENCE_A, ...SERVED })).toEqual([]);
   });
 
   it('counts a half-filled action as present, not missing', () => {
@@ -150,11 +157,23 @@ describe('the notices', () => {
     expect(html(data)).toMatch(/class="promo-notice"/);
   });
 
-  it('say nothing about a dangling image reference', () => {
+  it('say nothing about an UNSTAMPED image reference', () => {
     // Indistinguishable from an image picked one second ago on this surface
     // (see imageSrc), so claiming it would mean crying wolf on the common
     // case. The preview is optimistic and self-corrects on the next load.
     expect(warnings({ image: '../resolveuid/gone' })).toEqual([]);
+  });
+
+  it('announce a dangling reference once the server has confirmed it', () => {
+    // ADR 0003: the stamp is emitted even where nothing resolved, so *stamp
+    // present, image_url absent* is the server saying it looked at this exact
+    // reference and got nothing. Now a fact, so now sayable.
+    const data: PromoData = {
+      image: '../resolveuid/gone',
+      image_ref: '../resolveuid/gone',
+    };
+    expect(warnings(data).join('\n')).toMatch(/no longer exists/);
+    expect(html(data)).toMatch(/class="promo-notice"/);
   });
 
   it('stay quiet for an untouched promo — a blank slot is not a mistake', () => {
@@ -171,5 +190,42 @@ describe('the notices', () => {
       expect(notice.getAttribute('contenteditable')).toBe('false');
       expect(notice.closest('.promo')).toBeNull();
     });
+  });
+});
+
+describe('the picture the canvas shows, ADR 0003', () => {
+  it('follows a replacement immediately, without waiting for a reload', () => {
+    // The load-time derived set describes the OLD picture and says so, so it
+    // is discarded whole and the new reference previews through rung 2.
+    const replaced: PromoData = { ...SERVED, image: '../resolveuid/replacement' };
+    expect(imageSrc(replaced)).toBe('../resolveuid/replacement/@@images/image/large');
+    expect(html(replaced)).toContain('../resolveuid/replacement/@@images/image/large');
+    expect(html(replaced)).not.toContain('/pic.jpg/@@images/image/large');
+  });
+
+  it('reflows to the no-image layout when the picture is confirmed gone', () => {
+    // Both surfaces now agree on this node, which is what let the parity claim
+    // drop its stated exception: no <picture>, and the placement snaps to
+    // centred because there is nothing left to place.
+    const gone: PromoData = { title: 'Plone', align: 'left', image: '../resolveuid/gone', image_ref: '../resolveuid/gone' };
+    expect(html(gone)).toContain('<div class="promo has--align--center">');
+    expect(html(gone)).not.toContain('promo-image');
+  });
+
+  it('achieves both without ever writing to the document', () => {
+    // The whole reason ADR 0003 chose provenance over letting `edit` clear the
+    // stale keys: freshness bought with a writer would cost the no-writer rule
+    // its meaning, and this is the test that rule is pinned by.
+    const onChangeBlock = () => {
+      throw new Error('edit must not write to the document');
+    };
+    for (const data of [
+      { ...SERVED, image: '../resolveuid/replacement' },
+      { image: '../resolveuid/gone', image_ref: '../resolveuid/gone' },
+    ]) {
+      expect(() =>
+        render(<PromoEdit {...({ data, block: 'b1', onChangeBlock } as any)} />),
+      ).not.toThrow();
+    }
   });
 });
