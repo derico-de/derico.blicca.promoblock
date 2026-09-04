@@ -1,7 +1,7 @@
 # Wayfinder map: the Promo block — a generic Aurora block add-on
 
 Labels: wayfinder:map
-Status: needs-triage
+Status: resolved — closed out 2026-09-04
 
 ## Destination
 
@@ -13,6 +13,60 @@ component without a Blicca wrapper anywhere.
 
 Done means the block is installed and usable on the sandbox site **and** its
 native-Aurora path has been exercised, not that a spec exists for it.
+
+## Closed out — 2026-09-04
+
+**The destination was met on its own terms, and this map is done.** All 22
+tickets are resolved; the frontier is empty and nothing remains to decide
+before someone goes and does something.
+
+**What exists.** `derico.blicca.promoblock` is built, installed and usable on
+the sandbox site: sidebar-only authoring of kicker, title, description, an
+optional image and up to two calls to action; two renderers — a React `view`
+and the `@@aurora-block-promo` Chameleon template — emitting one anatomy,
+locked together by the 25-state fixture suite in `tests/anatomy-cases.json`,
+dressed by one scope-wrapped stylesheet through a seam the theme states and the
+block never assumes. The package is published at
+`MrTango/derico.blicca.promoblock`, public, and pinned in `mx-prod.ini`
+([ticket 18](issues/18-publish-and-pin-mx-prod.md)) — with the live warning
+that `plonetheme.derico` **hard-depends** on it, so a deploy missing the source
+fails to install the theme, and that pins go stale fast: re-pin from
+`git ls-remote`, never from the file.
+
+**What the destination asked for and got honestly rather than fully.** "The
+same bundle, installed in Aurora proper" was exercised against the
+*unsubstituted upstream registry* in vitest/jsdom, not against a running Seven
+— [ticket 02](issues/02-research-exercising-native-aurora.md) established that
+standing one up is an environment project, and it is in Out of scope below.
+The shared seam (`install`/`edit`/`view`) is genuinely exercised; the residual
+gap is stated in the README rather than closed. That is the map's one
+knowingly-partial claim.
+
+**What a future effort would pick up.** Not a resumption of this map — the
+frontier stops at the destination — but a fresh one, from these three seeds:
+
+1. **Not yet specified** below holds the single live deferral:
+   `--promo-title-weight`, which graduates the first time anyone looks at a
+   real Aurora page. Under the Blicca-first doctrine in Notes this waits on
+   Aurora catching up, not on any work here.
+2. **Out of scope** holds four items that are somebody's ticket, just not this
+   map's: the generic `textarea` registration and the write-only, unlabelled
+   image widget are both **upstream reports** against
+   `plone.blicca.auroraeditor`; `path_of` is Blicca's call across four call
+   sites; and the Tailwind font stack leaking into `.aurora-blocks-view`
+   affects *every* block on a published derico page and wants deciding in the
+   theme.
+3. **Pre-decided, if wanted**: [ticket
+   20](issues/20-decide-promo-title-scale-axis.md) leaves the title-scale axis
+   costed and shaped — `--promo-title-size-full` under
+   `.block.has--block-width--full`, only `full` expressible — so the day the
+   band case is actually authored, it is a build and not a decision.
+
+**Known and left alone deliberately** (from [ticket
+22](issues/22-verify-canvas-freshness-live.md)): two notices fire for a single
+image deletion, because the orphaned `align` genuinely is orphaned; and the
+sheet upscales a picture narrower than its track.
+
 
 ## Notes
 
