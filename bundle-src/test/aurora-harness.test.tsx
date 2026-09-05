@@ -187,7 +187,7 @@ describe('every promo field resolves to the widget it was designed for', () => {
     head_title: 'default',
     title: 'default',
     description: 'ours',
-    image: 'upstream',
+    image: 'ours',
     align: 'upstream',
     cta_primary_label: 'default',
     cta_primary_link: 'ours',
@@ -231,11 +231,18 @@ describe('every promo field resolves to the widget it was designed for', () => {
     expect(styling?.fields).toEqual(['blockWidth']);
   });
 
-  it('resolves `image` through the field-id rule, not through a `widget` key', () => {
-    // The deliberate naming (CONTEXT.md): the property is called `image` so
-    // getWidgetByFieldId hands it the HOST's image widget, upload included,
-    // with no `widget` key needed. If someone "fixes" the name, this fails.
-    expect(properties.image.widget).toBeUndefined();
+  it('resolves `image` through the field-id rule, which is the only lane that outranks the name', () => {
+    // The deliberate naming (CONTEXT.md) is unchanged — the property is still
+    // called `image`, because that is the name on disk and the name the server
+    // half reads. What changed is that `getWidgetByFieldId` is fed the schema's
+    // `id`, the ONE lane that runs before the name; a `widget` key alone would
+    // never be consulted for a field called `image`.
+    expect(properties.image.id).toBe('promo_image');
+    expect(resolveWidget('image', properties.image)).toBe(
+      PROMO_WIDGETS.promo_image,
+    );
+    // And the host's own widget is still registered and still what
+    // `promo_image` wraps at render — the upload never left.
     expect(aurora.getWidget('image')).toBe(ImageWidget);
   });
 });

@@ -71,6 +71,12 @@ ships no overwrite mechanism. Reference semantics stay with Aurora's teaser.**
    avoided the name to protect its own widget; here the host's widget is the
    thing we want.
 
+   AMENDED by ADR 0004: the field keeps that name and the host's widget still
+   picks and uploads, but it is reached through a `promo_image` wrapper that
+   adds the clear action neither host offers. The schema declares
+   `id: 'promo_image'` — the one resolution lane that runs before the field
+   name — so nothing about the stored data changes.
+
 5. **Neutral by default; custom properties are the theming API.** The block
    is generic — derico.de is its first consumer, not its subject — so it ships
    **structure** (the placement switch, the rhythm, the image box, the action

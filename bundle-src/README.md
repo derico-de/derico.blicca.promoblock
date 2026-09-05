@@ -51,10 +51,11 @@ genuinely is not on npm: a registry carrying **Aurora's registrations and no
 more**, so a field that only works because the Blicca wrapper registered
 something fails here rather than in production.
 
-## The three sidebar widgets
+## The four sidebar widgets
 
-`src/widgets/` registers `promo_textarea`, `promo_select` and `promo_link`
-from `install()`. They exist because the ecosystem has no working
+`src/widgets/` registers `promo_textarea`, `promo_select`, `promo_link` and
+`promo_image` from `install()`. The first three exist because the ecosystem has
+no working
 implementation of any of them: `textarea` and `select` are declared in the
 widget-type union and implemented by nobody, and `choices` is registered only
 by the Blicca wrapper — so a field leaning on it renders a select in
@@ -78,8 +79,20 @@ implements `allowExternals`. A picked item is stored as
 `apiPath` is `portal.absolute_url()` and persisting a brain's `@id` would
 bake the deploy hostname into content.
 
-`test/widgets.test.tsx` mounts all three through `renderField`, a
+`promo_image` is the other composite one, and the only widget reached through
+a schema **`id`** rather than a `widget` key. The field stays named `image` —
+that is the name on disk and the name the server half reads — and
+`getWidgetByFieldId(id ?? name)` runs first and unconditionally, so a `widget`
+key on it would never be consulted. Declaring `id: 'promo_image'` is the one
+lane that outranks the name. The widget wraps `config.getWidget('image')`, so
+the host keeps picking and uploading, and adds what neither host offers from a
+block-settings form: a label, a thumbnail of what is stored, and a **Clear**
+button writing `null`. See ADR 0004.
+
+`test/widgets.test.tsx` mounts all four through `renderField`, a
 reproduction of the prop envelope `BlockSettingsFormRenderer` and `Field.tsx`
 actually build — the whole schema property spread, `label` from `title`,
-`defaultValue` from form state, and **no `id` and no `value`**, which is why
-the widgets generate their own control id rather than trusting `props.id`.
+`defaultValue` from form state, and **no `value`**, plus no `id` of the
+renderer's own, which is why the widgets generate their own control id rather
+than trusting `props.id`. (`promo_image`'s `id` arrives with the schema
+property spread, which is exactly how the field-id lane reaches it.)

@@ -155,11 +155,17 @@ describe('properties', () => {
     }
   });
 
-  it('name the image field `image` so field-id resolution hands it the host widget', () => {
-    // Deliberately the inverse of derico-hero's rule: here the host's own
-    // image widget, upload included, is the thing we want. Both hosts
-    // register it, and getWidget searches every category flat.
-    expect(PromoSchema().properties.image).toEqual({ title: 'Image' });
+  it('keep the image field named `image` and put `promo_image` in front of it', () => {
+    // The NAME is what is on disk and what the server half reads, so it stays.
+    // The `id` is the only lane that outranks it — getWidgetByFieldId(id ?? name)
+    // runs first — and it is what buys the clear action neither host offers.
+    expect(PromoSchema().properties.image).toEqual({
+      title: 'Image',
+      id: 'promo_image',
+      widget: 'promo_image',
+    });
+    // The host's own image widget is still registered and still what
+    // `promo_image` wraps; only the field's entry point moved.
     expect(upstream.getWidget('image')).toBeDefined();
   });
 

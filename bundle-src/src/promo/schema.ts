@@ -159,15 +159,21 @@ export function PromoSchema({
       // silently change every other block's fields in this host.
       description: { title: 'Description', widget: 'promo_textarea' },
 
-      // Named `image` DELIBERATELY. getWidgetByFieldId(id ?? name) runs first
-      // and unconditionally on the schema property key, and config.getWidget
-      // searches all categories flat — so both hosts hand this field their own
-      // image widget, upload included, with no `widget` key needed. This is the
-      // exact INVERSE of derico-hero's rule, which avoided the name to protect
-      // its own widget; here the host's widget is the thing we want. Do not
-      // "fix" this by renaming it or by matching Aurora's image block, which
-      // spells it `url` + widget: 'image'.
-      image: { title: 'Image' },
+      // Named `image` DELIBERATELY: it is the name on disk, the one the server
+      // half reads, and the one a teaser<->promo copy keeps. Do not "fix" it by
+      // renaming it or by matching Aurora's image block, which spells it
+      // `url` + widget: 'image'.
+      //
+      // `id`, on the other hand, is the ONLY lane that can put a widget in
+      // front of that name: getWidgetByFieldId(id ?? name) runs first and
+      // unconditionally, so a bare `image` field takes the host's own image
+      // widget and never consults `widget`. That widget picks and uploads but
+      // offers no way to UNSET what it picked in a block-settings form (in
+      // either host), which left `align` — offered only while an image is set
+      // — stuck on too. `promo_image` wraps the host's widget, keeping the
+      // upload, and adds the clear action; the `widget` key repeats the choice
+      // for a host that ever reorders the two lanes.
+      image: { title: 'Image', id: 'promo_image', widget: 'promo_image' },
 
       // A plain data field, not a style field (mirroring Aurora's image block),
       // so no plugin emits its modifier class — both renderers emit

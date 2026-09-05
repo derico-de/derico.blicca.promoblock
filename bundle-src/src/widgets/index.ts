@@ -1,5 +1,5 @@
 /**
- * The Promo's three sidebar widgets and their registration.
+ * The Promo's four sidebar widgets and their registration.
  *
  * All three keys are **namespaced**. `registerWidget` writes into one global
  * last-wins map (`_data.widgets[key][widgetKey] = definition[widgetKey]`),
@@ -17,21 +17,31 @@
 import { PromoTextareaWidget } from './TextareaWidget';
 import { PromoSelectWidget } from './SelectWidget';
 import { PromoLinkWidget } from './LinkWidget';
+import { PromoImageWidget } from './ImageWidget';
 
 export { PromoTextareaWidget } from './TextareaWidget';
 export { PromoSelectWidget } from './SelectWidget';
 export { PromoLinkWidget, storedLinkFor } from './LinkWidget';
+export { PromoImageWidget } from './ImageWidget';
 
 /** The only registry surface this module needs. */
 type WidgetRegistrar = {
   registerWidget: (options: { key: string; definition: unknown }) => void;
 };
 
-/** Schema `widget:` value → component. Also the list ticket 08 asserts. */
+/**
+ * Schema `widget:` value → component. Also the list ticket 08 asserts.
+ *
+ * `promo_image` is reached through the schema property's `id`, not its
+ * `widget` — `getWidgetByFieldId` outranks `getWidgetByName`, and the field
+ * has to keep the name `image` on disk. Same map either way: `getWidget`
+ * searches every category flat, so one registration serves both lanes.
+ */
 export const PROMO_WIDGETS = {
   promo_textarea: PromoTextareaWidget,
   promo_select: PromoSelectWidget,
   promo_link: PromoLinkWidget,
+  promo_image: PromoImageWidget,
 } as const;
 
 /**

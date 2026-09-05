@@ -1,5 +1,5 @@
 /**
- * Ticket 07's suite: the three sidebar widgets, mounted against the
+ * Ticket 07's suite: the four sidebar widgets, mounted against the
  * **upstream** registry fixture.
  *
  * The fixture is the point. `test/upstream-registry.ts` registers what
@@ -25,6 +25,7 @@ import type { ComponentType } from 'react';
 import install from '../src/index';
 import {
   PROMO_WIDGETS,
+  PromoImageWidget,
   PromoLinkWidget,
   PromoSelectWidget,
   PromoTextareaWidget,
@@ -53,7 +54,9 @@ const UpstreamObjectBrowser = (upstream as any).widgets.widget.object_browser;
  * `BlockSettingsFormRenderer` (spreads the schema property, then overrides
  * `label`, `name`, `defaultValue`, `required`, `error`) followed by
  * `Field.tsx` (`label: title`, `placeholder` defaulted, `onChange` wrapped).
- * Note what is absent and stays absent: `id`, and `value`.
+ * Note what is absent and stays absent: `value`. `id` is absent from the
+ * renderer's own overrides — it only ever arrives as part of the schema
+ * property spread, which is exactly how `promo_image` is reached.
  */
 function renderField(
   Widget: ComponentType<any>,
@@ -79,7 +82,7 @@ function renderField(
 }
 
 describe('registration', () => {
-  it('registers all three under namespaced keys', () => {
+  it('registers all four under namespaced keys', () => {
     for (const [key, widget] of Object.entries(PROMO_WIDGETS)) {
       expect(upstream.getWidget(key)).toBe(widget);
     }
@@ -96,7 +99,9 @@ describe('registration', () => {
 
   it('leaves the host widgets the schema leans on untouched', () => {
     // `align` and `image` are the two deliberate host-widget exceptions
-    // (CONTEXT.md); registering ours must not have shadowed either.
+    // (CONTEXT.md); registering ours must not have shadowed either. This is
+    // what `promo_image` is careful about: it wraps `getWidget('image')`, so
+    // shadowing that key would make it wrap itself.
     //
     // Asserted by IDENTITY, not by name: since ticket 15 the fixture runs
     // cmsui's own installer, so these are the very objects Aurora resolves,
@@ -337,6 +342,158 @@ describe('promo_link', () => {
       expect(screen.getByLabelText('Card link')).toBeTruthy();
     } finally {
       widgets.object_browser = saved;
+    }
+  });
+});
+
+describe('promo_image', () => {
+  const property = {
+    title: 'Image',
+    id: 'promo_image',
+    widget: 'promo_image',
+  };
+
+  /** The host's image widget is cmsui's real one since ticket 15, and it is
+   *  no more mountable outside Aurora's edit route than its object browser.
+   *  Every render test therefore runs against a probe and puts the real one
+   *  back — the same shape the two `promo_link` picker tests use. */
+  function withImageWidget<T>(Probe: ComponentType<any>, run: () => T): T {
+    upstream.registerWidget({ key: 'widget', definition: { image: Probe } });
+    try {
+      return run();
+    } finally {
+      upstream.registerWidget({
+        key: 'widget',
+        definition: { image: UpstreamImageWidget },
+      });
+    }
+  }
+
+  const Silent: ComponentType<any> = () => null;
+
+  it('names the field — the host widget renders no label of its own', () => {
+    // Blicca's substituted image widget draws only the pattern island, so
+    // before this widget the promo's image row was an unlabelled button.
+    withImageWidget(Silent, () => {
+      renderField(PromoImageWidget, property);
+      const label = screen.getByText('Image');
+      expect(label.tagName).toBe('LABEL');
+      // Selector-safe, because Blicca hands it on as a DOM id.
+      expect(label.getAttribute('for')).toMatch(/^promo-image-widget-[A-Za-z0-9_-]+$/);
+    });
+  });
+
+  it('mounts whatever the host registered as its image widget', () => {
+    let seen: Record<string, unknown> | undefined;
+    const Probe: ComponentType<any> = (props: any) => {
+      seen = props;
+      return null;
+    };
+    withImageWidget(Probe, () => {
+      renderField(PromoImageWidget, property);
+      expect(seen).toBeDefined();
+      // The shell owns the chrome; handing it on would double every line.
+      expect(seen?.label).toBeUndefined();
+      // Never the schema id: Blicca puts this on the pattern island's input.
+      expect(seen?.id).not.toBe('promo_image');
+    });
+  });
+
+  it('offers no clear action while nothing is stored', () => {
+    withImageWidget(Silent, () => {
+      renderField(PromoImageWidget, property);
+      expect(screen.queryByRole('button', { name: /clear/i })).toBeNull();
+    });
+  });
+
+  it('clears a stored image to null — the whole point of the widget', () => {
+    const onChange = vi.fn();
+    withImageWidget(Silent, () => {
+      renderField(PromoImageWidget, property, {
+        name: 'image',
+        storedValue: '../resolveuid/abc123',
+        onChange,
+      });
+      fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+      // `null`, not `''`: the empty value both hosts write and both halves of
+      // this block read. `filled()` in the schema then drops `align` with it.
+      expect(onChange).toHaveBeenCalledWith(null);
+    });
+  });
+
+  it('remounts the host widget on clear, so no stale chip survives it', () => {
+    // Blicca's pattern island keeps its selected-item chip in Svelte state
+    // that nothing outside can reach; only a remount empties it.
+    let mounted = 0;
+    const Counter: ComponentType<any> = () => {
+      mounted += 1;
+      return null;
+    };
+    withImageWidget(Counter, () => {
+      renderField(PromoImageWidget, property, {
+        storedValue: '../resolveuid/abc123',
+      });
+      const before = mounted;
+      act(() => {
+        fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+      });
+      expect(mounted).toBeGreaterThan(before);
+    });
+  });
+
+  it('previews the stored reference with the URL the canvas already fetched', () => {
+    withImageWidget(Silent, () => {
+      const { container } = renderField(PromoImageWidget, property, {
+        storedValue: '../resolveuid/abc123',
+      });
+      const img = container.querySelector('.promo-image-widget img');
+      expect(img?.getAttribute('src')).toBe(
+        '../resolveuid/abc123/@@images/image/large',
+      );
+    });
+  });
+
+  it('shows a value that is no kind of picture as text, and still clears it', () => {
+    const onChange = vi.fn();
+    withImageWidget(Silent, () => {
+      const { container } = renderField(PromoImageWidget, property, {
+        storedValue: 'mailto:md@derico.de',
+        onChange,
+      });
+      expect(container.querySelector('.promo-image-widget img')).toBeNull();
+      expect(screen.getByText('mailto:md@derico.de')).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+      expect(onChange).toHaveBeenCalledWith(null);
+    });
+  });
+
+  it('forwards a pick as the bare reference the block stores', () => {
+    const onChange = vi.fn();
+    let picked: ((value: unknown, extras?: unknown) => void) | undefined;
+    const Capture: ComponentType<any> = (props: any) => {
+      picked = props.onChange;
+      return null;
+    };
+    withImageWidget(Capture, () => {
+      renderField(PromoImageWidget, property, { name: 'image', onChange });
+      act(() => {
+        // Both hosts call onChange(value, extras); Field.tsx drops the extras
+        // and the derived keys are the server's to compute (ADR 0003).
+        picked?.('../resolveuid/abc123', { image_scales: {} });
+      });
+      expect(onChange).toHaveBeenCalledWith('../resolveuid/abc123');
+    });
+  });
+
+  it('says so where no image widget is registered, rather than rendering nothing', () => {
+    const widgets = (upstream as any).widgets.widget;
+    const saved = widgets.image;
+    delete widgets.image;
+    try {
+      renderField(PromoImageWidget, property);
+      expect(screen.getByText(/no image widget is registered/i)).toBeTruthy();
+    } finally {
+      widgets.image = saved;
     }
   });
 });

@@ -1,7 +1,7 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import config from "@plone/registry";
 import { getStyleFieldDefinitionsFromRegistry } from "@plone/helpers";
-import { useId, useRef, useState, useCallback } from "react";
+import { useId, useRef, useState, useCallback, createElement } from "react";
 const CTA_SLOTS$1 = ["primary", "secondary"];
 const DEFAULT_VARIANT = "button";
 const DEFAULT_ALIGN = "center";
@@ -298,15 +298,21 @@ function PromoSchema({
       // Namespaced, never the generic `textarea`: claiming that key would
       // silently change every other block's fields in this host.
       description: { title: "Description", widget: "promo_textarea" },
-      // Named `image` DELIBERATELY. getWidgetByFieldId(id ?? name) runs first
-      // and unconditionally on the schema property key, and config.getWidget
-      // searches all categories flat — so both hosts hand this field their own
-      // image widget, upload included, with no `widget` key needed. This is the
-      // exact INVERSE of derico-hero's rule, which avoided the name to protect
-      // its own widget; here the host's widget is the thing we want. Do not
-      // "fix" this by renaming it or by matching Aurora's image block, which
-      // spells it `url` + widget: 'image'.
-      image: { title: "Image" },
+      // Named `image` DELIBERATELY: it is the name on disk, the one the server
+      // half reads, and the one a teaser<->promo copy keeps. Do not "fix" it by
+      // renaming it or by matching Aurora's image block, which spells it
+      // `url` + widget: 'image'.
+      //
+      // `id`, on the other hand, is the ONLY lane that can put a widget in
+      // front of that name: getWidgetByFieldId(id ?? name) runs first and
+      // unconditionally, so a bare `image` field takes the host's own image
+      // widget and never consults `widget`. That widget picks and uploads but
+      // offers no way to UNSET what it picked in a block-settings form (in
+      // either host), which left `align` — offered only while an image is set
+      // — stuck on too. `promo_image` wraps the host's widget, keeping the
+      // upload, and adds the clear action; the `widget` key repeats the choice
+      // for a host that ever reorders the two lanes.
+      image: { title: "Image", id: "promo_image", widget: "promo_image" },
       // A plain data field, not a style field (mirroring Aurora's image block),
       // so no plugin emits its modifier class — both renderers emit
       // `has--align--<value>` themselves. `center` means image ABOVE the copy.
@@ -348,7 +354,7 @@ function FieldShell({
   blockClass,
   render
 }) {
-  const controlId = useId();
+  const controlId = `${blockClass}-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
   return /* @__PURE__ */ jsxs(
     "div",
     {
@@ -493,10 +499,75 @@ function PromoLinkWidget(props) {
     }
   );
 }
+function PromoImageWidget(props) {
+  const { label, description, className, onChange } = props;
+  const stored = storedImage(props.value ?? props.defaultValue);
+  const preview = imageSrc({ image: stored });
+  const [generation, setGeneration] = useState(0);
+  const Picker = config.getWidget("image");
+  const handlePicked = useCallback(
+    // Both hosts call `onChange(value, extras)`; `Field.tsx` drops the extras
+    // on the way out, and the promo's derived keys are the server's to
+    // compute (ADR 0003), so only the reference is forwarded.
+    (value) => onChange?.(typeof value === "string" ? value : null),
+    [onChange]
+  );
+  const handleClear = useCallback(() => {
+    setGeneration((n) => n + 1);
+    onChange?.(null);
+  }, [onChange]);
+  return /* @__PURE__ */ jsx(
+    FieldShell,
+    {
+      blockClass: "promo-image-widget",
+      label,
+      description,
+      className,
+      render: (controlId) => /* @__PURE__ */ jsxs(Fragment, { children: [
+        stored ? /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-2", children: [
+          preview ? (
+            // The canvas already requested this exact URL, so the
+            // thumbnail costs no second round trip. A dangling reference
+            // renders as a broken image, which is the honest answer.
+            /* @__PURE__ */ jsx(
+              "img",
+              {
+                src: preview,
+                alt: "",
+                className: "max-h-20 w-auto rounded-md border border-input object-cover"
+              }
+            )
+          ) : /* @__PURE__ */ jsx("span", { className: "text-xs text-quanta-pigeon", title: stored, children: stored }),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              type: "button",
+              onClick: handleClear,
+              className: "w-fit text-xs font-medium text-quanta-pigeon underline",
+              children: "Clear"
+            }
+          )
+        ] }) : null,
+        Picker ? /* @__PURE__ */ createElement(
+          Picker,
+          {
+            ...props,
+            key: generation,
+            id: controlId,
+            label: void 0,
+            description: void 0,
+            onChange: handlePicked
+          }
+        ) : /* @__PURE__ */ jsx("p", { className: "text-xs font-normal text-quanta-pigeon", children: "No image widget is registered in this editor." })
+      ] })
+    }
+  );
+}
 const PROMO_WIDGETS = {
   promo_textarea: PromoTextareaWidget,
   promo_select: PromoSelectWidget,
-  promo_link: PromoLinkWidget
+  promo_link: PromoLinkWidget,
+  promo_image: PromoImageWidget
 };
 function registerPromoWidgets(config2) {
   config2.registerWidget({ key: "widget", definition: { ...PROMO_WIDGETS } });

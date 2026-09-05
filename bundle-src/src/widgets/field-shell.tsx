@@ -58,7 +58,11 @@ export function FieldShell({
   blockClass: string;
   render: (controlId: string) => ReactNode;
 }) {
-  const controlId = useId();
+  // Sanitized, not `useId()` raw: React's generated ids carry punctuation
+  // (guillemets in React 19, colons in React 18) that is illegal in a CSS
+  // selector, and `promo_image` hands this id on to a host widget that may
+  // use it as a DOM id — Blicca's puts it on the pattern island's input.
+  const controlId = `${blockClass}-${useId().replace(/[^A-Za-z0-9_-]/g, '')}`;
   return (
     <div
       className={`${blockClass} flex flex-col gap-1${className ? ` ${className}` : ''}`}
