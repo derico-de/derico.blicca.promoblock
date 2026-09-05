@@ -1,184 +1,212 @@
 # derico.blicca.promoblock
 
-An Aurora **Promo block** — an authored promo card with a kicker, a title, a
-description, an optional image and up to two calls to action.
+A **Promo block** for the Aurora block editor in Plone 6. It renders a promo
+card with a kicker, a title, a description, an optional image and up to two
+calls to action, or alternatively makes the whole card one link. Everything
+on the card is written by the author in the sidebar. Nothing is pulled from
+another content item.
 
-The block is **generic**. derico.de is its first consumer, not its subject:
-every design-specific want goes through the theme seam below, never into the
-block's own rules.
+Typical uses:
 
-It is **authored, never referential** (ADR 0001): there is no target, no
-`overwrite` and no derived field. Reference semantics stay with Aurora's own
-teaser.
+- a call to action at the end of a page ("Get in touch", "Book a demo");
+- a highlighted announcement with a picture beside the text;
+- a card linking to a campaign page, with a kicker above the headline.
 
-## Two hosts, one markup
+The block works with [plone.blicca.auroraeditor](https://github.com/derico-de/plone.blicca.auroraeditor),
+which brings the Aurora editor and server-side rendering of Aurora blocks to
+classic Plone 6. The editor half is also a plain Aurora block package
+(`@derico/aurora-promo-block`) that can be used in an Aurora frontend
+directly, see [Using the block in Aurora](#using-the-block-in-aurora).
 
-The Promo renders from two renderers that emit the **same anatomy**:
+## Features
 
-- a React `view` — the public rendering in Aurora proper, and the canvas
-  preview in `@@aurora-edit`;
-- a Chameleon template, `@@aurora-block-promo` — the public rendering under
-  Blicca.
+- **Authored content.** Kicker, title, description, image, two actions and a
+  card link, all written in the sidebar. Nothing is required, so a
+  half-finished promo can be saved and published.
+- **Image left, right or above.** With an image, the card is two columns with
+  the image on the chosen side. Without one, or below a width of 34rem, the
+  card stacks and centres.
+- **Two actions, each a button or a link.** Each action has a label, a link
+  and a style. Links can be site content picked from the browser, or a typed
+  URL, `mailto:` or `tel:` address.
+- **Card link.** If no action has a label, a single link makes the whole
+  card clickable.
+- **Images stay in sync.** Only the reference to the image is stored. The
+  URL and the responsive scales are computed on every load, so a rescaled or
+  deleted picture never leaves a broken `<img>` behind.
+- **Honest editor preview.** The canvas shows which fields are still empty
+  and explains anything the author typed that will not render, such as an
+  action with a label but no link.
+- **Same markup on every surface.** The public page, the editor canvas and an
+  Aurora frontend render the same HTML, dressed by one stylesheet.
+- **Themeable through CSS custom properties.** Nineteen `--promo-*`
+  properties control spacing, image, type and buttons. A theme sets
+  properties, never rules.
+- **Block width and background** come from the host's regular block styling
+  controls.
 
-One scope-wrapped stylesheet dresses both. An element added to one renderer
-without a peer in the other is a bug in both, and the fixture suite in
-`tests/anatomy-cases.json` — 25 states, read by the Python and the vitest
-suites alike — is what says so.
+## Requirements
 
-### Anatomy
+- Plone 6.0 or later
+- `plone.blicca.auroraeditor` 1.0.0a2 or later
+
+The JavaScript bundle is committed to the package. Nothing needs Node at
+install time.
+
+## Installation
+
+Add the package to your project's dependencies:
+
+```toml
+# pyproject.toml
+dependencies = [
+    "derico.blicca.promoblock",
+]
+```
+
+Then install **Derico Blicca Promoblock** from Plone's Add-ons control
+panel, or apply the `derico.blicca.promoblock:default` GenericSetup profile.
+The profile registers the block with the Aurora editor for that site.
+Uninstalling removes the registration again.
+
+## Using the block
+
+Insert the **Promo** block and fill in the sidebar. The canvas is a live
+preview; all editing happens in the sidebar.
+
+**Default fieldset**
+
+| Field | What it does |
+|---|---|
+| Kicker | Short line above the title |
+| Title | The headline, rendered as an `h2` |
+| Description | Plain text below the title |
+| Image | Pick or upload a picture. The host's image widget is used, so it looks the same as in every other block |
+| Image placement | Left, right or center. Shown only once an image is set. Center puts the picture above the text |
+
+**Actions fieldset**
+
+| Field | What it does |
+|---|---|
+| Primary action label, link, style | The first call to action. Style is Button or Link |
+| Secondary action label, link, style | The second one, same shape |
+| Card link | Makes the whole card clickable. Shown only while both action labels are empty |
+
+**Styling fieldset**: block width, and a background colour if the theme
+offers block backgrounds.
+
+Rules worth knowing:
+
+- An action renders only with both a label and a link. A label without a
+  link, or a link without a label, renders nothing and the canvas says so.
+- As soon as either action has a label, the card link is ignored. Its value
+  stays stored and comes back when the labels are cleared. There is never a
+  link nested inside another link.
+- The link fields accept a picked content item or typed text. Typed links
+  must be a path or use `http`, `https`, `mailto` or `tel`. Anything else is
+  dropped.
+- An image whose target has been deleted stops rendering on the next load.
+  The card reflows to the no-image layout and the canvas shows a notice.
+- The image is decorative and rendered with an empty `alt`. The title and
+  description carry the meaning.
+
+## Rendered markup
+
+Both renderers emit exactly this structure. Every element appears only when
+it has content, and no container is emitted empty, so an empty promo is one
+`<div>`.
 
 ```html
-<a class="promo-cardlink">                          <!-- only when the card link is active -->
-  <div class="promo has--align--<effective>">
-    <picture class="promo-image"><img …></picture>  <!-- only with an image -->
-    <div class="promo-copy">                        <!-- only if anything inside it renders -->
-      <p  class="promo-kicker">…</p>
+<a class="promo-cardlink" href="…">                <!-- only with an active card link -->
+  <div class="promo has--align--left">
+    <picture class="promo-image"><img …></picture> <!-- only with an image -->
+    <div class="promo-copy">
+      <p class="promo-kicker">…</p>
       <h2 class="promo-title">…</h2>
-      <p  class="promo-description">…</p>
-      <div class="promo-actions">                   <!-- only if an action renders -->
-        <a class="promo-cta promo-cta-button">…</a>
-        <a class="promo-cta promo-cta-link">…</a>
+      <p class="promo-description">…</p>
+      <div class="promo-actions">                  <!-- only with a rendering action -->
+        <a class="promo-cta promo-cta-button" href="…">…</a>
+        <a class="promo-cta promo-cta-link" href="…">…</a>
       </div>
     </div>
   </div>
 </a>
 ```
 
-Every element is conditional on **its own** content, and containers are never
-emitted empty — an empty promo is exactly one element. `has--align--<value>` is
-emitted **always** and carries the *effective* placement, so an image-less promo
-is `center` whatever was stored.
+- The root `div.promo` always carries `has--align--<value>` with the
+  placement that is actually in effect: `center` whenever there is no image,
+  whatever was stored.
+- The action style is spelled as a class, `promo-cta-button` or
+  `promo-cta-link`. There is no class for primary or secondary; DOM order
+  tells them apart.
+- The block width and background classes (`block`, `block-promo`,
+  `has--block-width--*`, `has--backgroundColor--*`) are added by the host on
+  a wrapper around this markup, as for every Aurora block.
 
-`block`, `block-promo`, `has--block-width--<value>` and
-`has--backgroundColor--<value>` arrive from the host on the wrapper **outside**
-this block's root. The block never emits them.
+## How it works
 
-### Choosing the picture
+The block stores its text fields, the image reference, the link strings, the
+placement and the action styles. The image is the only field the server
+touches:
 
-The `image` field is deliberately named `image` so field-id resolution hands it
-**the host's own image widget** — registered in Blicca and in Aurora proper,
-upload included. Owning the name means inheriting the widget's shape, and one
-part of that shape surprises people:
+1. On every load of a page, a `plone.restapi` block serialization transformer
+   resolves the stored image reference and injects `image_url`,
+   `image_scales` and `image_field` into the block data, plus `image_ref`,
+   the reference those three were derived from. A reference whose target is
+   gone gets `image_ref` but no `image_url`, which is how both renderers know
+   to draw the no-image layout.
+2. On save, a matching deserialization transformer strips all four keys
+   again, so derived image data is never written to the database.
+3. The renderers read `image_url` and the scales and build the `<picture>`.
+   A freshly picked image that has not been serialized yet is previewed in
+   the canvas from the reference itself, and `image_ref` lets the canvas
+   tell a stale derived set from a fresh one.
 
-- **It carries no label and shows no current selection.** In the sidebar the
-  field is a bare "Select or upload" button between Description and Image
-  placement; the schema's `title` never reaches it, and the widget declares a
-  `value` prop it never reads, so an author cannot see *which* picture is
-  chosen — only the canvas says. This is the widget's own shape in both hosts,
-  identical for every block that takes an image, so the Promo leaves it alone:
-  wrapping it would mean re-implementing the upload, which is the one thing
-  naming the field `image` was chosen to avoid. Report it upstream, not here.
+The transformers are registered for content with the `IBlocks` behavior and
+for the site root, so a promo in a footer stored on the site root works on
+every page. Nested blocks inside a text container are transformed too.
 
-Only the reference is stored. Everything renderable about the picture —
-`image_url`, `image_scales`, `image_field` — is **derived on load** by the
-block's serializer and stripped again on save, so none of it is ever on disk.
-A fourth derived key, `image_ref`, carries the reference the other three were
-derived *from*; that is what lets the canvas tell a derived set that is about
-the picture the author has now from one describing the picture they just
-replaced, without the editor ever writing to the document. The rules that
-follow from it, in author-visible terms:
+There are two renderers that produce the same markup:
 
-- A picture you have just chosen previews **immediately**, through the
-  reference itself — including one that replaces a picture already there.
-- A picture whose target has been **deleted** stops being drawn as soon as the
-  promo is reloaded: the block reflows to the no-image layout the visitor
-  already gets, and the canvas says so in a notice.
-- No derived key is ever offered in the sidebar, and typing one into the JSON
-  is pointless: the next save discards it.
+- a Chameleon template, registered as the `@@aurora-block-promo` view, for
+  the public page rendered by Blicca;
+- a React `view` component, used for the preview in the editor canvas and for
+  the public rendering in an Aurora frontend.
 
-### Where the two surfaces really differ
+The rules that decide what renders (defaults, the click rule, the link
+screen, the effective placement) are spelled once per language, in
+`promo_data.py` and in `bundle-src/src/promo/data.ts`. The Python test suite
+reads the TypeScript file to keep the two in step. One `@scope`-wrapped
+stylesheet styles both surfaces, and a shared fixture file,
+`tests/anatomy-cases.json`, is read by the Python and the vitest suites
+alike, so the two renderers cannot drift apart unnoticed.
 
-One, measured on a running site, and it is not cosmetic drift: **the title's
-weight**, for the reason under "Not themeable, on purpose". A picture whose
-target was deleted used to be the other entry — the canvas kept previewing a
-reference that 404s while the page showed no picture at all — and `image_ref`
-closed it: both surfaces now draw the same no-image layout for it. The page a
-visitor gets is always the server's regardless.
+The two-column layouts collapse to the stacked layout through a container
+query on the block's own width, not a media query. The editor canvas and the
+published page are different widths at the same viewport, and a viewport
+query would get the canvas wrong.
 
-## What "works in Aurora" means here
+## Theming
 
-The block is **built against upstream-registered widgets and its own**, and
-every field it declares resolves in Aurora to the widget it was designed for.
-That is the claim — deliberately narrower than "verified in Aurora".
+The block is styled through nineteen CSS custom properties. They are the
+entire styling interface: set properties on `:root` or on your theme's own
+scope root, where they inherit into the block. Do not set them on `.promo`
+itself and do not override the block's rules directly. The block's
+stylesheet is `@scope`-wrapped, and a scoped declaration wins over an
+unscoped one of equal specificity, so a plain rule in the theme would lose.
 
-What is actually exercised, in `bundle-src/test/aurora-harness.test.tsx`: the
-registry Aurora builds, from the packages Aurora ships
-(`@plone/theming`, `@plone/plate`, `@plone/blocks`, `@plone/layout`,
-`@plone/cmsui`), installed in the host's own order, at the versions this host
-pins — and with **none of the Blicca wrapper's overrides**. The block's
-`install`, `edit` and `view` run on top of it. The registry differences are
-what a promo can actually trip over, so they are what is covered: `align`
-resolves to cmsui's own `AlignWidget` and `image` to its `ImageWidget`
-(asserted by object identity, not by name), no field falls through to the
-default single-line input except the four that are meant to, and the promo
-joins Aurora's four blocks without displacing the teaser.
+The block declares none of these properties. Every default is spelled at its
+point of use as `var(--promo-x, <default>)`, so a value set on `:root`
+inherits in and wins without any specificity games. The defaults are plain
+literals rather than `--plone-*` or `--aurora-*` tokens, because those
+vocabularies differ between themes and are absent in an Aurora frontend. A
+theme that wants its own scale sets the property to its own token, for
+example `--promo-title-size: var(--plone-text-2xl)`.
 
-What is **not** covered, stated plainly:
-
-- **No Seven app is stood up.** That needs VHM domain-root serving and a
-  monorepo source integration, and the runtime add-on loader this block is
-  delivered by is a Blicca mechanism Aurora has no counterpart for. So nothing
-  here proves the block renders in a real Aurora page — only that it resolves
-  and renders against the registry Aurora builds.
-- **Two upstream widgets cannot be mounted outside Aurora's edit route.**
-  cmsui's `ImageWidget` calls `useFetcher` and its `ObjectBrowserWidget` calls
-  `useLoaderData`; both throw in any harness. They *resolve* here, and in
-  Aurora they mount inside the edit route, where Aurora's own teaser picks its
-  target the same way. `promo_link` therefore looks the picker up through
-  `config.getWidget` rather than importing one, and disappears entirely where
-  no picker is registered.
-- **Nothing dresses the block there.** The stylesheet is `@scope`-wrapped to
-  `.aurora-editor`, `.aurora-editor-portal` and `.aurora-blocks-view` — roots
-  that exist in Blicca and nowhere in Aurora proper. A headless suite can hold
-  reachability (every selector matches markup a renderer emits) but not
-  appearance. The editor's `.promo-incomplete` / `.promo-notice` chrome is
-  undressed there too, which is survivable only because it is prose.
-- **The title is body weight in Aurora** and 600 under Barceloneta, because
-  the seam states type size only and Aurora's preflight resets headings. See
-  "Not themeable, on purpose".
-
-Two divergences were predicted for Aurora and both turned out to be closed by
-design rather than merely tolerated — pinned as tests so a refactor cannot
-quietly reopen them. A field leaning on `choices` would degrade to a text
-input, because only Blicca registers that widget; the two fields that declare
-`choices` carry an explicit `widget` instead, which outranks it. And a
-Blicca-stored `../resolveuid/<UID>` would reach the DOM as a raw `src` through
-upstream's `getPreviewSrc`; the block never calls it, resolving previews with
-its own ladder instead.
-
-## Theming: the seam
-
-The block publishes **nineteen custom properties**. They are its whole styling
-interface: a theme sets properties, never rules.
-
-Set them where they **inherit** into the block — `:root`, or the theme's own
-scope root. Never on `.promo`, and never with a plain rule: the block's sheet is
-`@scope`-wrapped, so at equal specificity a scoped declaration wins on scope
-proximity and a theme rule would have to escalate specificity to be heard.
-
-The defaults are **literals, one level deep** — no `--plone-*`, no `--clara-*`,
-no `--aurora-*`. `--plone-*` is not one vocabulary but two that collide
-(`plonetheme.barceloneta`'s `--plone-link-color` against `plonetheme.clara`'s
-`--plone-color-link`, neither aliasing the other), and on native Aurora there is
-no Plone CSS at all, where a missing token would make the declaration
-invalid-at-computed-value-time and collapse the block instead of leaving it
-neutral. A theme opts into its own ladder by *setting* the property —
-`--promo-title-size: var(--plone-text-2xl)` — which is the seam working as
-designed.
-
-**The block declares none of these properties anywhere.** Each default lives at
-its point of use as `var(--promo-x, <literal>)`, so a theme's `:root` value
-inherits in and wins with no escalation. See
-[ADR 0002](docs/adr/0002-seam-defaults-live-at-their-point-of-use.md), and
-`bundle-src/test/seam-lockstep.test.ts`, which fails if this table and the
-stylesheet ever disagree.
-
-### The property table
-
-| property | default | what it paints |
+| property | default | what it controls |
 |---|---|---|
-| `--promo-gap` | `2rem` | image column ↔ copy column |
-| `--promo-flow` | `0.75rem` | rhythm *within* the copy stack, including between the two actions |
+| `--promo-gap` | `2rem` | gap between the image column and the copy column |
+| `--promo-flow` | `0.75rem` | rhythm inside the copy stack, including between the two actions |
 | `--promo-padding` | `0` | inner padding of the block root |
 | `--promo-measure` | `60ch` | max width of the copy |
 | `--promo-border` | `none` | border on the block root |
@@ -186,155 +214,110 @@ stylesheet ever disagree.
 | `--promo-image-width` | `1fr` | the image's grid track at `left` / `right` |
 | `--promo-image-ratio` | `auto` | `aspect-ratio` of the image box |
 | `--promo-image-radius` | `0` | corner radius of the image |
-| `--promo-kicker-size` | `0.875rem` | kicker type size |
-| `--promo-kicker-color` | `currentColor` | kicker ink |
-| `--promo-title-size` | `1.75rem` | title type size |
-| `--promo-description-size` | `1rem` | description type size |
-| `--promo-link-color` | `currentColor` | the `link` variant, and the card link |
-| `--promo-cta-bg` | `CanvasText` | the `button` variant's fill |
-| `--promo-cta-fg` | `Canvas` | the `button` variant's ink |
-| `--promo-cta-hover-bg` | `color-mix(in oklab, var(--promo-cta-bg, CanvasText) 88%, var(--promo-cta-fg, Canvas))` | button fill on hover |
+| `--promo-kicker-size` | `0.875rem` | kicker font size |
+| `--promo-kicker-color` | `currentColor` | kicker colour |
+| `--promo-title-size` | `1.75rem` | title font size |
+| `--promo-description-size` | `1rem` | description font size |
+| `--promo-link-color` | `currentColor` | the `link` action style, and the card link |
+| `--promo-cta-bg` | `CanvasText` | button background |
+| `--promo-cta-fg` | `Canvas` | button text colour |
+| `--promo-cta-hover-bg` | `color-mix(in oklab, var(--promo-cta-bg, CanvasText) 88%, var(--promo-cta-fg, Canvas))` | button background on hover |
 | `--promo-cta-radius` | `0.375rem` | button corner radius |
 | `--promo-cta-border` | `none` | button border |
 
-Notes on the ones that were argued:
+Example, a rounded card with a brand-coloured button:
 
-- **`--promo-padding` defaults to `0` on purpose.** The host's background slot
-  already pads the band with `--aurora-space-block`, so a non-zero default would
-  double-pad every banded promo. Turn it on together with a border or a ground.
-- **`--promo-measure` is forced, not optional.** A `center` promo at
-  `blockWidth: full` would otherwise run the copy across the whole bleed.
-- **`--promo-image-ratio` defaults to `auto`, never a ratio**, because forcing
-  one crops the author's image by default.
-- **`--promo-image-width` is a grid track**, so `1fr`, `22rem` and `40%` all
-  work; `1fr` gives equal columns.
-- **`--promo-cta-hover-bg` derives from whatever the theme set**, so a theme
-  that sets only the fill does not end up with a dead button. It mixes towards
-  the button's own **ink** rather than towards black, because the ink contrasts
-  with the fill by construction: mixing towards black is a no-op on the default
-  `CanvasText` fill, which already is black in a light colour scheme.
-- **`--promo-cta-border` exists** because a fill and an ink together cannot
-  express a ghost button.
-
-### Growth policy
-
-- Adding a property is a **minor** release.
-- Removing or renaming one is **breaking**.
-- **Changing a default is also breaking.** A theme that set nothing is relying
-  on the default, so a default is a published value and not an implementation
-  detail. This is the clause most likely to be forgotten, which is why the
-  lockstep test exists.
-- A property may only be added for an axis that **already exists in the
-  markup**. A new axis needing new anatomy is an anatomy decision first.
-
-### There is no background or foreground property
-
-Deliberately, and as a rule rather than by omission. The ground is the host's:
-the `backgroundColor` style field makes the *wrapper* paint a full-bleed band
-from `--aurora-block-bg-*`, which is a **cross-block** vocabulary. A block that
-needs a ground uses the generic name. Minting `--promo-bg` is the mistake — two
-grounds for one block is the defect, and a promo on a band gets the band from
-the wrapper, correctly full-bleed.
-
-### Two documented interactions
-
-1. **The promo goes monochrome on the `dark` background slot.** Blicca ships
-   `:is(.aurora-blocks-view, [data-slate-editor]) .block.has--backgroundColor--dark :where(*) { color: inherit }`
-   at (0,3,0) and this block's inks are (0,2,0), so on that slot **every colour
-   the seam sets** — the kicker, the link variant *and the button's ink* — is
-   flattened to the band's foreground, whatever the theme set it to. That rule
-   is deliberate upstream; the block defers to it rather than escalating
-   specificity to win. It names the editor too, so the canvas flattens
-   identically — the surfaces agree here rather than diverging.
-2. **On that slot the button keeps its fill and loses its ink.** A background is
-   not a colour, so `--promo-cta-bg` passes through untouched while
-   `--promo-cta-fg` is flattened with everything else and is simply inert there.
-   With nothing set, the `CanvasText` default fill is black — on a dark band, a
-   black slab wearing the band's light ink: legible, but a shape nobody chose.
-   Setting `--promo-cta-bg` takes the fill back, and it is the only half of the
-   button the seam can reach on this slot.
-
-### Not themeable, on purpose
-
-- **The placement switch.** `center` stacks and centres, `left` and `right` are
-  two columns. Wanting a different one means wanting a different block.
-- **The title has one size, not one per context.** A promo standing in for a
-  full-width section band wants a larger headline than a promo used as a card,
-  and `--promo-title-size` is a single inherited value that cannot express
-  both. The block is dressed as a **card** — a block an author drops on a page
-  — and a page-scale headline is what the page's own `h1` is for. If the band
-  case is ever authored for real, the fix is a second property
-  (`--promo-title-size-full`, read under `.block.has--block-width--full`), an
-  additive **minor** change that leaves `1.75rem` where it is; it is not a
-  ramp inside the block, and it is not a theme rule. Decided in
-  `.scratch/promo-block/issues/20-decide-promo-title-scale-axis.md`, which
-  carries the citations and the one constraint that matters: only `full` is
-  expressible on both surfaces.
-- **The focus ring.** The block sets no `outline` at all, so the host's
-  `:focus-visible` reaches the CTA unopposed. A property here would be a seam
-  over something that was never blocked.
-- **Type weight, leading and transform.** Only the three `--promo-*-size`
-  properties are published. Stating a weight or a leading would scope-lock it
-  with no property to recover it; the block is deliberately quiet rather than
-  quietly unrecoverable. The visible consequence, measured on a running site:
-  the title is the theme's `h2` weight on the published page (600 under
-  Barceloneta) and the editor's body weight in the canvas, because Plate's
-  preflight flattens headings. It is the price of not scope-locking the
-  weight, and since `image_ref` closed the other one it is the only place the
-  surfaces do not look identical — see
-  "Where the two surfaces really differ".
-
-### Where the two-column placements collapse
-
-`left` and `right` fall back to the stacked `center` layout below **34rem** of
-the block's own inline size. It is a **container** query, not a media query: the
-editor canvas column and the published page are different widths at the same
-viewport, and a viewport query would get the canvas wrong.
-
-## Installation
-
-Add `derico.blicca.promoblock` to your project's dependencies:
-
-```python
-# In your pyproject.toml
-dependencies = [
-    "derico.blicca.promoblock",
-]
+```css
+:root {
+  --promo-padding: 2rem;
+  --promo-border: 1px solid var(--my-border-color);
+  --promo-radius: 1rem;
+  --promo-image-radius: 0.5rem;
+  --promo-image-ratio: 4 / 3;
+  --promo-cta-bg: var(--my-brand-color);
+  --promo-cta-fg: white;
+}
 ```
 
-Then install the add-on from Plone's control panel, or apply the
-`derico.blicca.promoblock:default` GenericSetup profile.
+Notes:
+
+- The padding defaults to `0` because the host's background band already
+  pads the block. Turn padding on together with a border or a background of
+  your own.
+- The copy width is always capped, so a centred promo at full block width
+  does not run its text across the whole bleed.
+- The image ratio defaults to `auto`. Setting a ratio crops the image with
+  `object-fit: cover`.
+- The image width is a grid track, so `1fr`, `22rem` and `40%` all work.
+- The hover background is derived from whatever fill and text colour the
+  theme set, so a theme that sets only the fill still gets a hover state.
+- A button border exists so a theme can express a ghost button.
+- There is no background or foreground property. The block's ground is the
+  host's background band, chosen with the block's own background control.
+- The block sets no focus outline and no font weight, line height or text
+  transform. The host's focus style and the theme's heading styles apply
+  unchanged. One visible consequence: the title has the theme's `h2` weight
+  on the public page and the editor's body weight in the canvas.
+
+On the host's `dark` background band, Blicca forces every descendant's text
+colour to the band's foreground. That flattens the kicker colour, the link
+colour and the button text colour on that band. The button background still
+applies, so set `--promo-cta-bg` to a colour that works with the band's text
+colour.
+
+Versioning of this interface: adding a property is a minor release. Removing
+or renaming a property, or changing a default, is a breaking change. See
+[ADR 0002](docs/adr/0002-seam-defaults-live-at-their-point-of-use.md) for
+the reasoning.
+
+## Using the block in Aurora
+
+The editor half lives in `bundle-src/` as the npm package
+`@derico/aurora-promo-block` (not yet published). It registers the block and
+its three widgets through the usual `install(config)` entry point and resolves
+every other field to an upstream Aurora widget, so it works without the
+Blicca wrapper. The Python package must still be installed on the backend
+for the image to render, since the React `view` reads the derived image keys
+the server injects.
+
+Things to know when using it in an Aurora frontend:
+
+- **The image field has no label and shows no current selection.** This is
+  the host image widget's own shape in both hosts. The canvas is where the
+  chosen picture is visible.
+- **Bring your own styling.** The stylesheet is scoped to the Blicca roots
+  and does not apply in an Aurora frontend.
+- The block has been verified against the registry the Aurora installers
+  build, not inside a running Aurora application.
 
 ## Development
 
-The Python half and the JavaScript half are built separately, and the JS build
-output is **committed** into `src/derico/blicca/promoblock/static/` — Node is a
-packaging-time tool here, never an install-time one.
+The package has a Python half and a JavaScript half. The JavaScript build
+output is committed into `src/derico/blicca/promoblock/static/`; rebuild and
+commit it whenever the sources in `bundle-src/src/` change.
 
 ```bash
 # JavaScript: widgets, schema, edit/view, the stylesheet
 cd bundle-src
 pnpm install
+pnpm build        # writes ../src/derico/blicca/promoblock/static/promo-block.{js,css}
 pnpm test
 pnpm typecheck
-pnpm build        # writes ../src/derico/blicca/promoblock/static/promo-block.{js,css}
 ```
-
-The five Aurora installers are **devDependencies**, so the test registry is the
-one Aurora actually builds rather than a transcription of it (see "What 'works
-in Aurora' means here"). They cost nothing at runtime — the shipped bundle
-imports four modules, all of them promised externals, and a test fails if that
-ever stops being true. They ship raw TypeScript and do not typecheck outside
-Volto's monorepo, so `tsconfig.json` maps them to `test/aurora-packages.d.ts`
-for **type** resolution only; vitest still loads the real packages.
 
 ```bash
-# Python: run from the assembly repo's root environment
-uv run --no-sync pytest sources/derico.blicca.promoblock
+# Python, from an environment that has the test extras installed
+uv run pytest
 ```
 
-Any GenericSetup profile XML change gets an upgrade step, even in an alpha:
-`plonecli add upgrade_step`, narrowed to the affected import step.
+The JavaScript tests run the block against the real Aurora registry, built
+by the upstream Aurora installers pinned as dev dependencies. Among them,
+`test/seam-lockstep.test.ts` checks that the property table in this README
+matches the stylesheet literally, so keep the two in step. Design decisions
+are recorded in `docs/adr/`.
+
+Every change to a GenericSetup profile XML file needs an upgrade step, even
+in an alpha release. Scaffold it with `plonecli add upgrade_step`.
 
 ## License
 
@@ -342,4 +325,4 @@ GPL-2.0-or-later
 
 ## Author
 
-Maik Derstappen <md@derico.de>
+Maik Derstappen, [derico](https://derico.de), <md@derico.de>
