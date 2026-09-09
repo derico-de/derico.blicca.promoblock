@@ -28,8 +28,8 @@
  *    root — never the host's `.block-promo` wrapper stamp, which belongs to
  *    the host, and this block has two hosts (ticket 17). Two deliberate
  *    exceptions, both marked where they appear: `.promo-cardlink` (the
- *    wrapper, an ANCESTOR of the root) and the editor's `.promo-incomplete` /
- *    `.promo-notice` chrome, which ticket 17 rule 3 keeps outside the root.
+ *    wrapper, an ANCESTOR of the root) and the editor's `.promo-notice`
+ *    chrome, which ticket 17 rule 3 keeps outside the root.
  * 4. NEVER SELECT ON `[href]`. The canvas drops every `href` and keeps every
  *    element, tag and class, so `[href]` is the one selector that can tell
  *    the two surfaces apart (ticket 08). `.promo-cardlink` and `.promo-cta`
@@ -347,7 +347,6 @@
  * ticket 15. Legible either way: they are prose, not icons.
  */
 
-.promo-incomplete,
 .promo-notice {
   margin-block: 0.5rem 0;
   padding-inline-start: 0.5rem;

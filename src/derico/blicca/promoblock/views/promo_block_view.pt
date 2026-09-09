@@ -40,9 +40,9 @@
     </picture>
     <!--! Every element is conditional on its own content and no container is
           ever emitted empty (ticket 17 rule 3), so an empty promo is exactly
-          one element. The editor's labelled skeleton lives outside the root
-          and has no counterpart here: the public page says nothing about what
-          an author typed and the renderers dropped. -->
+          one element. The editor's notices live outside the root and have no
+          counterpart here: the public page says nothing about what an author
+          typed and the renderers dropped. -->
     <div class="promo-copy" tal:condition="view/has_copy">
       <p class="promo-kicker"
          tal:condition="view/kicker"

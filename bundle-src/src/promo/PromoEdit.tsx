@@ -14,20 +14,17 @@
  * described is moot, and its absence is the decision, not an omission.
  *
  * What the canvas adds instead is HONESTY, and it is the only reason this
- * component exists at all:
+ * component exists at all: every Q8 row that discards something the author
+ * typed is announced here and nowhere else. That is what makes those silent
+ * resolutions acceptable on the public page. An empty slot is NOT announced —
+ * the sidebar already shows which fields are blank, and a nag repeating it on
+ * the canvas is noise.
  *
- *  - the **skeleton**: nothing is seeded and ticket 17 rule 3 keeps the block
- *    root empty when there is nothing in it, so a fresh promo would otherwise
- *    be a blank box. `missing()` names the empty slots.
- *  - the **notices**: every Q8 row that discards something the author typed is
- *    announced here and nowhere else. That is what makes those silent
- *    resolutions acceptable on the public page.
- *
- * Both live OUTSIDE the block root and are `contentEditable={false}`, so they
- * can neither be typed into nor reached by the block's own scoped stylesheet
- * selectors, which all descend from `.promo`.
+ * The notices live OUTSIDE the block root and are `contentEditable={false}`,
+ * so they can neither be typed into nor reached by the block's own scoped
+ * stylesheet selectors, which all descend from `.promo`.
  */
-import { missing, warnings, type PromoData } from './data';
+import { warnings, type PromoData } from './data';
 import PromoView from './PromoView';
 
 export type PromoEditProps = {
@@ -36,16 +33,10 @@ export type PromoEditProps = {
 
 export function PromoEdit(props: PromoEditProps) {
   const data = props.data ?? {};
-  const gaps = missing(data);
   const notes = warnings(data);
   return (
     <>
       <PromoView {...props} isEditMode />
-      {gaps.length ? (
-        <p className="promo-incomplete" contentEditable={false}>
-          Still to fill in: {gaps.join(', ')}.
-        </p>
-      ) : null}
       {notes.map((note) => (
         <p key={note} className="promo-notice" contentEditable={false}>
           {note}

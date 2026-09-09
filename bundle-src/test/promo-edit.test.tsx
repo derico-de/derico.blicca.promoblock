@@ -7,18 +7,17 @@
  *  1. **It delegates.** `edit` renders `view` — so the anatomy cannot drift
  *     between the surfaces, and the block has one markup implementation on
  *     this side rather than two.
- *  2. **It is honest.** Nothing is seeded (ticket 03 Q5) and ticket 17 rule 3
- *     keeps the block root empty when there is nothing in it, so without the
- *     skeleton a fresh promo is a blank box. And every Q8 row that silently
- *     discards something the author typed is announced HERE — which is the
- *     reason those rows are allowed to be silent on the public page.
+ *  2. **It is honest.** Every Q8 row that silently discards something the
+ *     author typed is announced HERE — which is the reason those rows are
+ *     allowed to be silent on the public page. An empty slot is NOT a
+ *     mistake and gets no nag: the sidebar already shows what is blank.
  */
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 
 import PromoEdit from '../src/promo/PromoEdit';
 import PromoView from '../src/promo/PromoView';
-import { imageSrc, missing, warnings, type PromoData } from '../src/promo/data';
+import { imageSrc, warnings, type PromoData } from '../src/promo/data';
 
 const html = (data: PromoData) => render(<PromoEdit data={data} />).container.innerHTML;
 
@@ -44,15 +43,13 @@ const REFERENCE_A: PromoData = {
 describe('delegation', () => {
   it('renders exactly `view` in edit mode, plus the notes', () => {
     const view = render(<PromoView data={REFERENCE_A} isEditMode />).container.innerHTML;
-    // Reference case A leaves the image empty on purpose, so a skeleton line
-    // follows the block — the markup itself is view's, character for
-    // character, and comes first.
+    // Reference case A is clean, so nothing follows the block — the markup
+    // is view's, character for character.
     expect(html(REFERENCE_A).startsWith(view)).toBe(true);
   });
 
   it('adds nothing at all once every slot is filled', () => {
     const complete: PromoData = { ...REFERENCE_A, ...SERVED };
-    expect(missing(complete)).toEqual([]);
     expect(warnings(complete)).toEqual([]);
     expect(html(complete)).toBe(
       render(<PromoView data={complete} isEditMode />).container.innerHTML,
@@ -73,45 +70,11 @@ describe('delegation', () => {
   });
 });
 
-describe('the skeleton', () => {
-  it('names every empty slot of a fresh promo, in sidebar order', () => {
-    expect(missing({})).toEqual([
-      'kicker',
-      'title',
-      'description',
-      'image',
-      'primary action',
-      'secondary action',
-    ]);
-  });
-
-  it('lives outside the block root, so rule 3 still holds', () => {
+describe('an empty promo', () => {
+  it('gets no chrome at all — the canvas never nags about blank slots', () => {
     const { container } = render(<PromoEdit data={{}} />);
     expect(container.querySelector('.promo')!.innerHTML).toBe('');
-    expect(container.querySelector('.promo-incomplete')!.parentElement).toBe(container);
-  });
-
-  it('is not editable and not reachable by the block stylesheet', () => {
-    // Every rule in ticket 11's sheet descends from `.promo`; these do not,
-    // and contentEditable={false} keeps the author from typing into them.
-    const { container } = render(<PromoEdit data={{}} />);
-    for (const selector of ['.promo-incomplete']) {
-      const node = container.querySelector(selector)!;
-      expect(node.getAttribute('contenteditable')).toBe('false');
-      expect(node.closest('.promo')).toBeNull();
-    }
-  });
-
-  it('disappears slot by slot as the promo is filled in', () => {
-    expect(missing({ ...REFERENCE_A })).toEqual(['image']);
-    expect(missing({ ...REFERENCE_A, ...SERVED })).toEqual([]);
-  });
-
-  it('counts a half-filled action as present, not missing', () => {
-    // It is not an empty slot — it is a mistake, so it belongs in the
-    // notices, where the sentence can say what is wrong with it.
-    expect(missing({ cta_primary_label: 'Los' })).not.toContain('primary action');
-    expect(warnings({ cta_primary_label: 'Los' })).toHaveLength(1);
+    expect(container.querySelectorAll('p').length).toBe(0);
   });
 });
 

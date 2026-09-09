@@ -19,8 +19,8 @@ Two things the TS half carries that this one does not:
   (ticket 08). The server never guesses: ticket 10's transformer has already
   run, so ``image_url`` is the single source, and its **absence** is that
   ticket's signal for "no image" — including a dangling reference.
-- ``missing()``/``warnings()``. Editor honesty, by definition: the public page
-  says nothing about what an author typed and the renderers dropped.
+- ``warnings()``. Editor honesty, by definition: the public page says nothing
+  about what an author typed and the renderers dropped.
 """
 
 import re

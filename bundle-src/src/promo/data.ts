@@ -125,7 +125,7 @@ export function labelOf(data: PromoData, slot: CtaSlot): string {
  * then made `.promo-cta` conditional on "a label **and** a screened link", so
  * the text-only shape would emit an element the anatomy says cannot exist —
  * and would put back the dead button row 2 exists to remove. The canvas names
- * it instead (see `missing()`).
+ * it instead (see `warnings()`).
  */
 export function action(data: PromoData, slot: CtaSlot): Action | null {
   const label = labelOf(data, slot);
@@ -303,32 +303,6 @@ export function effectiveAlign(data: PromoData): Alignment {
 }
 
 /* ── editor honesty ─────────────────────────────────────────────────────── */
-
-/**
- * The empty slots, named — the canvas's labelled skeleton.
- *
- * Ticket 03 Q5 seeds nothing, so a fresh promo is a node carrying `@type` and
- * the author has no visible hint which slot is which; ticket 17 rule 3 keeps
- * the block root empty when there is nothing in it, so this list — rendered
- * OUTSIDE the root — is the hint. Order follows the sidebar.
- *
- * The image slot asks `hasImage`, not "is a string stored": a value that is
- * not a picture at all leaves the slot genuinely unfilled, and `warnings()`
- * says separately what is wrong with what was typed.
- */
-export function missing(data: PromoData): string[] {
-  const gaps: string[] = [];
-  if (!text(data.head_title)) gaps.push('kicker');
-  if (!text(data.title)) gaps.push('title');
-  if (!text(data.description)) gaps.push('description');
-  if (!hasImage(data)) gaps.push('image');
-  for (const slot of CTA_SLOTS) {
-    if (!labelOf(data, slot) && !text(data[`cta_${slot}_link` as keyof PromoData])) {
-      gaps.push(`${slot} action`);
-    }
-  }
-  return gaps;
-}
 
 /**
  * The values the renderers drop, each as a sentence the author can act on.

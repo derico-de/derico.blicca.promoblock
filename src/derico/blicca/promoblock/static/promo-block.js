@@ -79,19 +79,6 @@ function effectiveAlign(data) {
   const stored = text(data.align);
   return ALIGNMENTS.includes(stored) ? stored : DEFAULT_ALIGN;
 }
-function missing(data) {
-  const gaps = [];
-  if (!text(data.head_title)) gaps.push("kicker");
-  if (!text(data.title)) gaps.push("title");
-  if (!text(data.description)) gaps.push("description");
-  if (!hasImage(data)) gaps.push("image");
-  for (const slot of CTA_SLOTS$1) {
-    if (!labelOf(data, slot) && !text(data[`cta_${slot}_link`])) {
-      gaps.push(`${slot} action`);
-    }
-  }
-  return gaps;
-}
 function warnings(data) {
   const notes = [];
   const picture = storedImage(data.image);
@@ -165,15 +152,9 @@ function PromoView({ data = {}, isEditMode }) {
 }
 function PromoEdit(props) {
   const data = props.data ?? {};
-  const gaps = missing(data);
   const notes = warnings(data);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(PromoView, { ...props, isEditMode: true }),
-    gaps.length ? /* @__PURE__ */ jsxs("p", { className: "promo-incomplete", contentEditable: false, children: [
-      "Still to fill in: ",
-      gaps.join(", "),
-      "."
-    ] }) : null,
     notes.map((note) => /* @__PURE__ */ jsx("p", { className: "promo-notice", contentEditable: false, children: note }, note))
   ] });
 }
