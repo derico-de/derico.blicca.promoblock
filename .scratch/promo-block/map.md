@@ -604,7 +604,7 @@ sheet upscales a picture narrower than its track.
   `5d85f44`. The pin on file was **stale in a way that mattered** — `cfa654e`
   predates the stylesheet, the derico token line and both reference cases, so a
   deploy would have installed an **undressed** promo; re-pinned to `5d85f44`
-  alongside `plonetheme.derico` → `2b1600f` (assembly commit `9991b05`). The
+  alongside `plonetheme.derico` → `3caf305` (assembly commit `9991b05`). The
   ticket also under-stated the stakes: the theme **hard-depends** on the block
   (`pyproject` + a `profile-…:default` dependency), so a deploy missing the
   section fails to install **the theme**, not just the promo — now recorded in

@@ -79,7 +79,7 @@ new-section bootstrap path is proven rather than merely written down.
 stylesheet ([ticket 11](11-build-the-stylesheet.md)), the derico token line
 ([ticket 16](16-derico-token-line.md)) and both verified reference cases, so the
 pin on file would have deployed an **undressed** promo. Re-pinned to `5d85f44`;
-the same pass moved `plonetheme.derico` from `5713e16b` to `2b1600f`, which is
+the same pass moved `plonetheme.derico` from `a88e10ce` to `3caf305`, which is
 the commit carrying ticket 16's `derico.css` §9. Both landed in the assembly
 repo as `9991b05`.
 
@@ -101,7 +101,7 @@ it.
 
 **Carried forward, deliberately not a ticket.** The deploy that ran installed
 `cfa654e` -- the undressed block. The pins now point at `5d85f44` +
-`2b1600f`, so the dressed promo and derico's tokens reach the server on the
+`3caf305`, so the dressed promo and derico's tokens reach the server on the
 **next** `install-sources`. That is routine ops on an already-proven path, not a
 decision this map owes anyone, so it is recorded here rather than minted as a
 ticket. Re-pinning happens on every deploy anyway, which is exactly how this
