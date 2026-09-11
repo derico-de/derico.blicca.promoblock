@@ -68,6 +68,15 @@
       handler="derico.blicca.promoblock.setuphandlers.uninstall"
       />
 
+  <!-- Keep the uninstall and upgrade profiles out of the Add-ons control panel.
+       Without this registration the class in setuphandlers.py is inert and
+       every one of those EXTENSION profiles is offered as an installable
+       add-on of its own. -->
+  <utility
+      factory=".setuphandlers.HiddenProfiles"
+      name="derico.blicca.promoblock-hiddenprofiles"
+      />
+
 
   <include package=".upgrades" />
 

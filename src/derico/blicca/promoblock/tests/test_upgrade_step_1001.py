@@ -59,6 +59,25 @@ def normalized(path):
     return walk(ET.parse(path).getroot())  # noqa: S314
 
 
+def hidden_profiles():
+    """Every profile the add-ons panel is told to hide.
+
+    Read from the utility registry rather than from `HiddenProfiles()`: the
+    panel and `GET /@addons` only ever see the class through the
+    `INonInstallable` utility registered in configure.zcml, so a test that
+    instantiates it passes with no registration at all — which is how these
+    profiles came to be offered as installable add-ons in the first place.
+    """
+    from plone.base.interfaces import INonInstallable
+    from zope.component import getAllUtilitiesRegisteredFor
+
+    return [
+        name
+        for utility in getAllUtilitiesRegisteredFor(INonInstallable)
+        for name in getattr(utility, "getNonInstallableProfiles", list)()
+    ]
+
+
 class TestUpgradeProfileParity:
     """The upgrade profile's copy of the record must not drift."""
 
@@ -164,9 +183,7 @@ class TestUpgradeProfilesHidden:
         and the list is not updated — which is exactly when nobody would
         think to look.
         """
-        from derico.blicca.promoblock.setuphandlers import HiddenProfiles
-
-        hidden = set(HiddenProfiles().getNonInstallableProfiles())
+        hidden = set(hidden_profiles())
         registered = {
             info["id"]
             for info in self.setup_tool.listProfileInfo()
