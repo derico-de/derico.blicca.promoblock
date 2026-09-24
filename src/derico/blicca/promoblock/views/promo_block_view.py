@@ -39,6 +39,7 @@ from plone.blicca.auroraeditor.rendering import path_of
 from plone.restapi.serializer.utils import resolve_uid
 
 from derico.blicca.promoblock import promo_data
+from derico.blicca.promoblock.picture import responsive_image
 
 
 #: Template indentation, between two tags. Collapsed away — see ``__call__``.
@@ -148,40 +149,20 @@ class PromoBlockView(BaseBlockView):
 
     @property
     def image(self):
-        """``{src, width, height}`` for the ``<img>``, or ``None``.
+        """``{src, width, height[, srcset, sizes]}`` for the ``<img>``, or ``None``.
 
-        ``image_source()`` is the promised derivation (contract §5.2): it picks
-        the first entry of ticket 10's enriched ``image_scales``, hangs it off
-        the ``base_path`` that ticket stamps, and hands back the intrinsic
-        dimensions — which is a real gain over the editor's single ``src``,
-        because ``width``/``height`` are what stop the picture reflowing the
-        page as it loads.
-
-        It answers ``None`` for an SVG or for anything with no scales at all
-        (an external URL, most of the time). That is **not** "emit no
-        ``<picture>``" here: ticket 17 landed after this ticket was written and
-        made ``<picture>`` + ``<img>`` unconditional on both surfaces,
-        precisely so this branch is invisible to the stylesheet. ``None``
-        means "no scale-derived ladder", and the screened ``image_url`` — which
-        ticket 10 guarantees is directly usable as an ``<img src>`` — carries
-        the plain case.
-
-        **No ``srcset``**, for the reason ticket 08 gave on the other surface
-        and which holds identically here: ``w`` descriptors without a ``sizes``
-        policy default to ``100vw`` and over-fetch, and ``sizes`` depends on
-        ``blockWidth`` and the theme's layout, neither of which a generic block
-        can know. If art direction or an eager LCP image is ever wanted, the
-        sanctioned path is ``plone.namedfile``'s ``Img2PictureTag`` called with
-        an ``image_source()`` ``src`` — not the wrapper's unpromised
-        ``picture_tag``.
+        In-site images get the fitting picture variant's ladder and a
+        ``sizes`` matching ``blockWidth`` and the placement. ``image_source()``
+        answers ``None`` for an SVG or an external URL; the screened
+        ``image_url`` then carries the plain ``<img>``.
         """
         src = promo_data.image_url(self.promo)
         if not src:
             return None
         source = image_source(self.promo)
-        if source and source.get("src"):
-            return source
-        return {"src": src, "width": None, "height": None}
+        if not source or not source.get("src"):
+            return {"src": src, "width": None, "height": None}
+        return responsive_image(source, self.promo, promo_data.effective_align(self.promo))
 
     # -- rendering -----------------------------------------------------------
 

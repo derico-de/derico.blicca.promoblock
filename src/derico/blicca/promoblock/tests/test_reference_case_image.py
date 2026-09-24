@@ -222,10 +222,13 @@ class TestThePictureThroughThePipeline(ReferenceCaseTestCase):
         assert 'width="1"' in markup
         assert 'height="1"' in markup
 
-    def test_still_no_srcset(self):
-        # Ticket 08's reason holds identically on the server: `w` descriptors
-        # without a `sizes` policy a generic block cannot know would over-fetch.
-        assert "srcset" not in self.render(self.promo_node())
+    def test_the_picture_variant_ladder_reaches_the_page(self):
+        markup = self.render(self.promo_node())
+        assert "/plone/pic/@@images/image/preview 400w" in markup
+
+    def test_sizes_follow_the_nodes_block_width(self):
+        markup = self.render(self.promo_node(blockWidth="layout"))
+        assert 'sizes="(min-width: 1440px) calc((1440px - 2rem) / 2)' in markup
 
     def test_the_anatomy_is_the_fixture_s(self):
         # The attributes differ by construction — the fixture's `src` is a

@@ -29,12 +29,14 @@
           branch is invisible to the sheet. `alt=""`: ticket 03 declared no alt
           field, so the picture is decorative. The title and description carry
           the meaning, and an alt invented from the title would be read twice.
-          `width` and `height` are dropped by Chameleon when absent. -->
+          `srcset`, `sizes`, `width` and `height` are dropped when absent. -->
     <picture class="promo-image" tal:condition="image">
       <img alt=""
            decoding="async"
            loading="lazy"
            tal:attributes="src image/src;
+                           srcset image/srcset | nothing;
+                           sizes image/sizes | nothing;
                            width image/width;
                            height image/height" />
     </picture>

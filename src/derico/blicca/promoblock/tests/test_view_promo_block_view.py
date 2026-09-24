@@ -55,9 +55,9 @@ CASES = json.loads(FIXTURE.read_text(encoding="utf-8"))["cases"]
 #: the strict comparison and someone has to consciously exempt it.
 ATTRIBUTE_EXEMPT = {
     "image-with-scales": (
-        "image_source() builds the original-size download off ticket 10's "
-        "base_path and adds the intrinsic width/height; the fixture's src is "
-        "the editor's preview scale, which is that surface's own rule."
+        "The server adds the picture variant's srcset, a blockWidth-derived "
+        "sizes and the intrinsic width/height; the fixture's src is the "
+        "editor's preview scale, which is that surface's own rule."
     ),
 }
 
@@ -506,29 +506,44 @@ class TestThePicture(PromoViewTestCase):
         ]
     }
 
-    def test_scales_bring_intrinsic_dimensions(self):
-        # width/height are what stop the picture reflowing the page as it
-        # loads, and they are the whole of what image_source() adds here.
-        markup = self.render({
+    def _scaled(self, **extra):
+        return self.render(dict({
             "image_url": "/pic.jpg/@@images/image/large",
             "image_field": "image",
             "image_scales": self.SCALES,
-        })
-        assert 'src="/pic.jpg/@@images/image-1200-abc.jpeg"' in markup
+        }, **extra))
+
+    def test_scales_bring_intrinsic_dimensions(self):
+        # width/height are what stop the picture reflowing the page as it loads.
+        markup = self._scaled()
         assert 'width="1200"' in markup
         assert 'height="800"' in markup
 
-    def test_no_srcset_is_built(self):
-        # Ticket 08's reason holds identically here: `w` descriptors without a
-        # `sizes` policy default to 100vw and over-fetch, and `sizes` depends
-        # on blockWidth and the theme's layout, neither of which a generic
-        # block can know.
-        markup = self.render({
-            "image_url": "/pic.jpg/@@images/image/large",
-            "image_field": "image",
-            "image_scales": self.SCALES,
-        })
-        assert "srcset" not in markup
+    def test_the_picture_variant_builds_the_ladder(self):
+        markup = self._scaled()
+        assert 'src="/pic.jpg/@@images/image/larger"' in markup
+        assert "/pic.jpg/@@images/image/preview 400w" in markup
+        assert "/pic.jpg/@@images/image/huge 1600w" in markup
+
+    def test_the_ladder_sits_on_the_img_not_a_source(self):
+        # A <source> would break the picture > img anatomy both renderers share.
+        assert "<source" not in self._scaled()
+
+    @pytest.mark.parametrize(
+        "extra, expected",
+        [
+            ({}, 'sizes="(min-width: 940px) 940px, 100vw"'),
+            ({"blockWidth": "narrow"}, 'sizes="(min-width: 620px) 620px, 100vw"'),
+            ({"blockWidth": "full"}, 'sizes="100vw"'),
+            (
+                {"blockWidth": "layout", "align": "left"},
+                'sizes="(min-width: 1440px) calc((1440px - 2rem) / 2), '
+                '(min-width: 40rem) calc((100vw - 2rem) / 2), 100vw"',
+            ),
+        ],
+    )
+    def test_sizes_follow_the_block_width_and_placement(self, extra, expected):
+        assert expected in self._scaled(**extra)
 
     def test_without_scales_the_picture_is_still_emitted(self):
         # image_source() answering None means "no scale-derived ladder", not
