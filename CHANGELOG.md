@@ -2,6 +2,11 @@
 
 ## 1.0.0a1 (unreleased)
 
+- The promo image offers AVIF: one `<source type="image/avif">` in front of
+  the `<img>`, the ladder's twin in the smaller encoding (served on demand
+  by Blicca's `@@images`), with the same `sizes`. The upload-format ladder
+  stays on the `<img>`, and the editor's renderer keeps `picture > img`.
+
 - The uninstall and upgrade profiles are out of the Add-ons control panel
   again. `HiddenProfiles` named them all along, but the `INonInstallable`
   utility was never registered in `configure.zcml` — and the panel (and

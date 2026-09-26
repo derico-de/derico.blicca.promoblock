@@ -96,13 +96,21 @@ def canonical(html):
     return _rewrite(html, lambda attribute: attribute)
 
 
+_AVIF_SOURCE = re.compile(r'<source\b[^>]*\btype="image/avif"[^>]*>\s*', re.I)
+
+
 def skeleton(html):
     """The cross-renderer contract: tags, ``class``, and text.
 
     The same rule ``bundle-src/test/promo-anatomy.test.tsx`` exports under this
     name, implemented against the same fixture.
+
+    The AVIF ``<source>`` the page puts before the ``<img>`` is delivery, not
+    anatomy — the editor never serves AVIF — so it is dropped before comparing.
     """
-    return _rewrite(html, lambda a: a if a.startswith("class=") else "")
+    return _rewrite(
+        _AVIF_SOURCE.sub("", html), lambda a: a if a.startswith("class=") else ""
+    )
 
 
 class PromoViewTestCase:
@@ -526,8 +534,23 @@ class TestThePicture(PromoViewTestCase):
         assert "/pic.jpg/@@images/image/huge 1600w" in markup
 
     def test_the_ladder_sits_on_the_img_not_a_source(self):
-        # A <source> would break the picture > img anatomy both renderers share.
-        assert "<source" not in self._scaled()
+        # The upload-format ladder rides on the img (the anatomy both
+        # renderers share); the only <source> is its AVIF twin, in front.
+        markup = self._scaled()
+        assert markup.count("<source") == 1
+        assert re.search(
+            r'<picture class="promo-image"><source type="image/avif"[^>]*>\s*<img\b', markup
+        )
+        assert 'srcset="/pic.jpg/@@images/image/larger 1000w' in markup
+
+    def test_the_avif_source_twins_the_ladder(self):
+        markup = self._scaled()
+        source = re.search(r"<source[^>]*>", markup).group(0)
+        assert "/pic.jpg/@@images/image/larger.avif 1000w" in source
+        assert "/pic.jpg/@@images/image/preview.avif 400w" in source
+        assert "/pic.jpg/@@images/image/huge.avif 1600w" in source
+        assert 'sizes="(min-width: 940px) 940px, 100vw"' in source
+        assert 'src="/pic.jpg/@@images/image/larger"' in markup
 
     @pytest.mark.parametrize(
         "extra, expected",

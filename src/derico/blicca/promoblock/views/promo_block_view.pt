@@ -29,8 +29,14 @@
           branch is invisible to the sheet. `alt=""`: ticket 03 declared no alt
           field, so the picture is decorative. The title and description carry
           the meaning, and an alt invented from the title would be read twice.
-          `srcset`, `sizes`, `width` and `height` are dropped when absent. -->
+          `srcset`, `sizes`, `width` and `height` are dropped when absent.
+          The AVIF `source` before the `img` is the ladder's twin in the
+          smaller encoding; the editor's renderer keeps `picture > img`. -->
     <picture class="promo-image" tal:condition="image">
+      <source type="image/avif"
+              tal:condition="image/avif_srcset | nothing"
+              tal:attributes="srcset image/avif_srcset;
+                              sizes image/sizes | nothing" />
       <img alt=""
            decoding="async"
            loading="lazy"
