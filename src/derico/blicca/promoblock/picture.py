@@ -96,7 +96,7 @@ def responsive_image(source, data, align):
     picture = Img2PictureTag().create_picture_tag(
         variants[name]["sourceset"], {"src": source["src"]}, lazy=False
     )
-    # Blicca puts an ``image/avif`` twin in front of every source; the last
+    # plone.namedfile puts an ``image/avif`` twin in front of every source; the last
     # source is the variant's own ladder, in the upload's format.
     ladder = picture.find_all("source")[-1]
     avif = picture.find("source", type="image/avif")
