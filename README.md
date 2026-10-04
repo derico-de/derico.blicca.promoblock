@@ -1,10 +1,10 @@
 # derico.blicca.promoblock
 
-A **Promo block** for the Aurora block editor in Plone 6. It renders a promo
-card with a kicker, a title, a description, an optional image and up to two
-calls to action, or alternatively makes the whole card one link. Everything
-on the card is written by the author in the sidebar. Nothing is pulled from
-another content item.
+A **Promo** block for the Aurora editor in [Plone](https://plone.org) Blicca.
+Blicca is the former Plone Classic UI. The block renders a promo card with a
+kicker, a title, a description, an optional image and up to two calls to
+action, or makes the whole card one link. Everything on the card is written
+by the author in the sidebar. Nothing is pulled from another content item.
 
 Typical uses:
 
@@ -12,11 +12,10 @@ Typical uses:
 - a highlighted announcement with a picture beside the text;
 - a card linking to a campaign page, with a kicker above the headline.
 
-The block works with [plone.blicca.auroraeditor](https://github.com/derico-de/plone.blicca.auroraeditor),
-which brings the Aurora editor and server-side rendering of Aurora blocks to
-classic Plone 6. The editor half is also a plain Aurora block package
-(`@derico/aurora-promo-block`) that can be used in an Aurora frontend
-directly, see [Using the block in Aurora](#using-the-block-in-aurora).
+The block needs [plone.blicca.auroraeditor](https://github.com/derico-de/plone.blicca.auroraeditor),
+which brings the Aurora editor to Blicca. Its editor half is also a plain
+Aurora block package, `@derico/aurora-promo-block`, that can be used in an
+Aurora frontend directly, see [Using the block in Aurora](#using-the-block-in-aurora).
 
 ## Features
 
@@ -31,26 +30,26 @@ directly, see [Using the block in Aurora](#using-the-block-in-aurora).
   URL, `mailto:` or `tel:` address.
 - **Card link.** If no action has a label, a single link makes the whole
   card clickable.
-- **Images stay in sync.** Only the reference to the image is stored. The
-  URL and the responsive scales are computed on every load, so a rescaled or
-  deleted picture never leaves a broken `<img>` behind.
+- **Responsive images.** Only the reference to the image is stored. The
+  public page serves the picture variant that fits the block width and the
+  placement, with `srcset`, `sizes` and an AVIF alternative, computed on
+  every load. A rescaled or deleted picture never leaves a broken `<img>`
+  behind.
 - **Honest editor preview.** The canvas shows which fields are still empty
   and explains anything the author typed that will not render, such as an
   action with a label but no link.
-- **Same markup on every surface.** The public page, the editor canvas and an
-  Aurora frontend render the same HTML, dressed by one stylesheet.
-- **Themeable through CSS custom properties.** Nineteen `--promo-*`
-  properties control spacing, image, type and buttons. A theme sets
-  properties, never rules.
-- **Block width and background** come from the host's regular block styling
-  controls.
+- **One markup, one stylesheet** for the public page, the editor canvas and
+  an Aurora frontend.
+- **Themeable** through nineteen `--promo-*` CSS custom properties.
+- **Block width and background colour** come from the editor's regular block
+  styling controls.
 
 ## Requirements
 
 - Plone 6.0 or later
 - `plone.blicca.auroraeditor` 1.0.0a2 or later
 
-The JavaScript bundle is committed to the package. Nothing needs Node at
+The JavaScript bundle is committed to the package. No Node is needed at
 install time.
 
 ## Installation
@@ -65,14 +64,13 @@ dependencies = [
 ```
 
 Then install **Derico Blicca Promoblock** from Plone's Add-ons control
-panel, or apply the `derico.blicca.promoblock:default` GenericSetup profile.
-The profile registers the block with the Aurora editor for that site.
-Uninstalling removes the registration again.
+panel, or apply the `derico.blicca.promoblock:default` profile. Uninstalling
+removes the block registration again.
 
 ## Using the block
 
-Insert the **Promo** block and fill in the sidebar. The canvas is a live
-preview; all editing happens in the sidebar.
+Insert the **Promo** block in the Aurora editor and fill in the sidebar. The
+canvas is a live preview; all editing happens in the sidebar.
 
 **Default fieldset**
 
@@ -81,7 +79,7 @@ preview; all editing happens in the sidebar.
 | Kicker | Short line above the title |
 | Title | The headline, rendered as an `h2` |
 | Description | Plain text below the title |
-| Image | Pick or upload a picture. The host's image widget is used, so it looks the same as in every other block |
+| Image | Pick or upload a picture. The editor's image widget is used, so it looks the same as in every other block |
 | Image placement | Left, right or center. Shown only once an image is set. Center puts the picture above the text |
 
 **Actions fieldset**
@@ -92,8 +90,8 @@ preview; all editing happens in the sidebar.
 | Secondary action label, link, style | The second one, same shape |
 | Card link | Makes the whole card clickable. Shown only while both action labels are empty |
 
-**Styling fieldset**: block width, and a background colour if the theme
-offers block backgrounds.
+**Styling fieldset**: block width, and a background colour if the site
+offers a palette.
 
 Rules worth knowing:
 
@@ -112,14 +110,17 @@ Rules worth knowing:
 
 ## Rendered markup
 
-Both renderers emit exactly this structure. Every element appears only when
-it has content, and no container is emitted empty, so an empty promo is one
-`<div>`.
+Every element appears only when it has content, and no container is emitted
+empty, so an empty promo is one `<div>`.
 
 ```html
 <a class="promo-cardlink" href="…">                <!-- only with an active card link -->
   <div class="promo has--align--left">
-    <picture class="promo-image"><img …></picture> <!-- only with an image -->
+    <picture class="promo-image">                  <!-- only with an image -->
+      <source type="image/avif" srcset="…" sizes="…">   <!-- public page only -->
+      <img src="…" srcset="…" sizes="…" width="…" height="…"
+           alt="" loading="lazy" decoding="async">
+    </picture>
     <div class="promo-copy">
       <p class="promo-kicker">…</p>
       <h2 class="promo-title">…</h2>
@@ -136,12 +137,14 @@ it has content, and no container is emitted empty, so an empty promo is one
 - The root `div.promo` always carries `has--align--<value>` with the
   placement that is actually in effect: `center` whenever there is no image,
   whatever was stored.
+- The public page carries the responsive attributes on the `<img>` and one
+  AVIF `<source>` in front of it. The React renderer emits the same elements
+  and classes with a plain `<img>`.
 - The action style is spelled as a class, `promo-cta-button` or
   `promo-cta-link`. There is no class for primary or secondary; DOM order
   tells them apart.
-- The block width and background classes (`block`, `block-promo`,
-  `has--block-width--*`, `has--backgroundColor--*`) are added by the host on
-  a wrapper around this markup, as for every Aurora block.
+- Block width and background classes are added by the host on a wrapper
+  around this markup, as for every Aurora block.
 
 ## How it works
 
@@ -149,37 +152,37 @@ The block stores its text fields, the image reference, the link strings, the
 placement and the action styles. The image is the only field the server
 touches:
 
-1. On every load of a page, a `plone.restapi` block serialization transformer
-   resolves the stored image reference and injects `image_url`,
-   `image_scales` and `image_field` into the block data, plus `image_ref`,
-   the reference those three were derived from. A reference whose target is
-   gone gets `image_ref` but no `image_url`, which is how both renderers know
-   to draw the no-image layout.
+1. On every load, a `plone.restapi` block serialization transformer resolves
+   the stored image reference and injects `image_url`, `image_scales` and
+   `image_field` into the block data, plus `image_ref`, the reference those
+   three were derived from. A reference whose target is gone gets `image_ref`
+   but no `image_url`, which is how both renderers know to draw the no-image
+   layout.
 2. On save, a matching deserialization transformer strips all four keys
    again, so derived image data is never written to the database.
-3. The renderers read `image_url` and the scales and build the `<picture>`.
-   A freshly picked image that has not been serialized yet is previewed in
-   the canvas from the reference itself, and `image_ref` lets the canvas
-   tell a stale derived set from a fresh one.
+3. The public renderer picks the smallest of the site's picture variants
+   (`small`, `medium`, `large` or `fullwidth`) that covers the width the
+   image can get, derived from the block width and the placement, and puts
+   its `srcset` on the `<img>` with a matching `sizes`. The AVIF twin of that
+   ladder goes into a `<source>` in front. An SVG or an external image URL
+   gets a plain `<img>`.
+4. The React renderer reads `image_url`. A freshly picked image that has not
+   been serialized yet is previewed from the reference itself, and
+   `image_ref` lets the canvas tell a stale derived set from a fresh one.
 
 The transformers are registered for content with the `IBlocks` behavior and
 for the site root, so a promo in a footer stored on the site root works on
 every page. Nested blocks inside a text container are transformed too.
 
-There are two renderers that produce the same markup:
-
-- a Chameleon template, registered as the `@@aurora-block-promo` view, for
-  the public page rendered by Blicca;
-- a React `view` component, used for the preview in the editor canvas and for
-  the public rendering in an Aurora frontend.
-
-The rules that decide what renders (defaults, the click rule, the link
-screen, the effective placement) are spelled once per language, in
-`promo_data.py` and in `bundle-src/src/promo/data.ts`. The Python test suite
-reads the TypeScript file to keep the two in step. One `@scope`-wrapped
-stylesheet styles both surfaces, and a shared fixture file,
-`tests/anatomy-cases.json`, is read by the Python and the vitest suites
-alike, so the two renderers cannot drift apart unnoticed.
+Two renderers emit the same markup: a Chameleon template registered as the
+`@@aurora-block-promo` view for the public page, and a React `view`
+component for the editor canvas and for Aurora frontends. The rules that
+decide what renders (defaults, the click rule, the link screen, the
+effective placement) are spelled once per language, in `promo_data.py` and
+in `bundle-src/src/promo/data.ts`, and the Python test suite reads the
+TypeScript file to keep the two in step. Both renderers read the shared
+fixture `tests/anatomy-cases.json` in their test suites, so they cannot
+drift apart unnoticed.
 
 The two-column layouts collapse to the stacked layout through a container
 query on the block's own width, not a media query. The editor canvas and the
@@ -188,16 +191,16 @@ query would get the canvas wrong.
 
 ## Theming
 
-The block is styled through nineteen CSS custom properties. They are the
-entire styling interface: set properties on `:root` or on your theme's own
-scope root, where they inherit into the block. Do not set them on `.promo`
-itself and do not override the block's rules directly. The block's
-stylesheet is `@scope`-wrapped, and a scoped declaration wins over an
-unscoped one of equal specificity, so a plain rule in the theme would lose.
+Nineteen CSS custom properties are the whole styling interface. Set them on
+`:root` or on your theme's own scope root; they inherit into the block. Do
+not set them on `.promo` itself and do not override the block's rules
+directly: the stylesheet is `@scope`-wrapped, and a scoped declaration wins
+over an unscoped one of equal specificity, so a plain rule in the theme
+would lose.
 
 The block declares none of these properties. Every default is spelled at its
 point of use as `var(--promo-x, <default>)`, so a value set on `:root`
-inherits in and wins without any specificity games. The defaults are plain
+inherits in and wins without specificity games. The defaults are plain
 literals rather than `--plone-*` or `--aurora-*` tokens, because those
 vocabularies differ between themes and are absent in an Aurora frontend. A
 theme that wants its own scale sets the property to its own token, for
@@ -259,14 +262,14 @@ Notes:
   unchanged. One visible consequence: the title has the theme's `h2` weight
   on the public page and the editor's body weight in the canvas.
 
-On the host's `dark` background band, Blicca forces every descendant's text
-colour to the band's foreground. That flattens the kicker colour, the link
-colour and the button text colour on that band. The button background still
+On the `dark` background band, Blicca forces every descendant's text colour
+to the band's foreground. That flattens the kicker colour, the link colour
+and the button text colour on that band. The button background still
 applies, so set `--promo-cta-bg` to a colour that works with the band's text
 colour.
 
-Versioning of this interface: adding a property is a minor release. Removing
-or renaming a property, or changing a default, is a breaking change. See
+Adding a property is a minor release. Removing or renaming a property, or
+changing a default, is a breaking change. See
 [ADR 0002](docs/adr/0002-seam-defaults-live-at-their-point-of-use.md) for
 the reasoning.
 
@@ -275,13 +278,11 @@ the reasoning.
 The editor half lives in `bundle-src/` as the npm package
 `@derico/aurora-promo-block` (not yet published). It registers the block and
 its three widgets through the usual `install(config)` entry point and resolves
-every other field to an upstream Aurora widget, so it works without the
-Blicca wrapper. The Python package must still be installed on the backend
-for the image to render, since the React `view` reads the derived image keys
-the server injects.
+every other field to an upstream Aurora widget.
 
-Things to know when using it in an Aurora frontend:
-
+- **The Python package must still be installed on the backend.** The React
+  `view` reads the derived image keys the server injects. Without it the
+  image does not render.
 - **The image field has no label and shows no current selection.** This is
   the host image widget's own shape in both hosts. The canvas is where the
   chosen picture is visible.
@@ -292,26 +293,23 @@ Things to know when using it in an Aurora frontend:
 
 ## Development
 
-The package has a Python half and a JavaScript half. The JavaScript build
-output is committed into `src/derico/blicca/promoblock/static/`; rebuild and
-commit it whenever the sources in `bundle-src/src/` change.
+The JavaScript build output is committed into
+`src/derico/blicca/promoblock/static/`. Rebuild and commit it whenever
+`bundle-src/src/` changes; CI fails when the committed bundle does not match
+the source.
 
 ```bash
-# JavaScript: widgets, schema, edit/view, the stylesheet
 cd bundle-src
 pnpm install
 pnpm build        # writes ../src/derico/blicca/promoblock/static/promo-block.{js,css}
-pnpm test
+pnpm test         # reads the built bundle, so build first
 pnpm typecheck
 ```
 
 ```bash
-# Python, from an environment that has the test extras installed
-uv run pytest
+uv run --extra test pytest
 ```
 
-The JavaScript tests run the block against the real Aurora registry, built
-by the upstream Aurora installers pinned as dev dependencies. Among them,
 `test/seam-lockstep.test.ts` checks that the property table in this README
 matches the stylesheet literally, so keep the two in step. Design decisions
 are recorded in `docs/adr/`.
