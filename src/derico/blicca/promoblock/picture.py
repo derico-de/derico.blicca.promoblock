@@ -2,9 +2,9 @@
 
 The variant's ``srcset`` and a ``sizes`` derived from ``blockWidth`` and the
 placement are folded onto the ``<img>`` rather than a ``<source>``, so the
-anatomy both renderers share stays ``picture > img``. The one ``<source>``
-the page adds in front of it is the AVIF twin of that ladder: an alternate
-encoding cannot ride on an ``<img>``, and every user image offers AVIF.
+anatomy both renderers share stays ``picture > img``. When plone.namedfile
+supplies an AVIF twin of that ladder, the page adds it as a ``<source>`` in
+front: an alternate encoding cannot ride on an ``<img>``.
 """
 
 from plone.namedfile.picture import get_picture_variants
@@ -96,8 +96,8 @@ def responsive_image(source, data, align):
     picture = Img2PictureTag().create_picture_tag(
         variants[name]["sourceset"], {"src": source["src"]}, lazy=False
     )
-    # plone.namedfile puts an ``image/avif`` twin in front of every source; the last
-    # source is the variant's own ladder, in the upload's format.
+    # AVIF-capable plone.namedfile can put an ``image/avif`` twin before a source;
+    # the last source is the variant's own ladder, in the upload's format.
     ladder = picture.find_all("source")[-1]
     avif = picture.find("source", type="image/avif")
     return dict(

@@ -22,6 +22,7 @@ code could not quietly redefine it.
 
 import json
 import re
+from copy import copy
 from pathlib import Path
 
 import pytest
@@ -31,6 +32,7 @@ from plone.app.testing import TEST_USER_ID
 from plone.blicca.auroraeditor.blockaddons import evaluate
 from plone.blicca.auroraeditor.blockaddons import lockstep_gaps
 from plone.blicca.auroraeditor.browser.rendering.base import BlockDispatchMixin
+from plone.namedfile.picture import Img2PictureTag
 from zope.component import getMultiAdapter
 from zope.interface import alsoProvides
 from zope.publisher.browser import TestRequest
@@ -533,23 +535,59 @@ class TestThePicture(PromoViewTestCase):
         assert "/pic.jpg/@@images/image/preview 400w" in markup
         assert "/pic.jpg/@@images/image/huge 1600w" in markup
 
-    def test_the_ladder_sits_on_the_img_not_a_source(self):
+    @pytest.fixture(params=[False, True], ids=["stock", "avif-capable"])
+    def picture_delivery(self, request, monkeypatch):
+        # Released plone.namedfile 8.1.1 has no AVIF sources; hosts running
+        # the AVIF implementation can supply them. Exercise both contracts
+        # independently of the installed version, keeping its real ladder.
+        has_avif = request.param
+        create_picture_tag = Img2PictureTag.create_picture_tag
+
+        def create_with_delivery(tag, *args, **kwargs):
+            picture = create_picture_tag(tag, *args, **kwargs)
+            for source in picture.find_all("source", type="image/avif"):
+                source.decompose()
+            if has_avif:
+                ladder = picture.find_all("source")[-1]
+                avif = copy(ladder)
+                avif["type"] = "image/avif"
+                avif["srcset"] = ",\n".join(
+                    f"{url}.avif {width}"
+                    for url, width in (
+                        entry.split() for entry in ladder["srcset"].split(",\n")
+                    )
+                )
+                ladder.insert_before(avif)
+            return picture
+
+        monkeypatch.setattr(Img2PictureTag, "create_picture_tag", create_with_delivery)
+        return has_avif
+
+    def test_the_ladder_sits_on_the_img_not_a_source(self, picture_delivery):
         # The upload-format ladder rides on the img (the anatomy both
-        # renderers share); the only <source> is its AVIF twin, in front.
+        # renderers share); an optional AVIF twin goes in front.
         markup = self._scaled()
-        assert markup.count("<source") == 1
-        assert re.search(
-            r'<picture class="promo-image"><source type="image/avif"[^>]*>\s*<img\b', markup
-        )
+        assert markup.count("<source") == int(picture_delivery)
+        if picture_delivery:
+            assert re.search(
+                r'<picture class="promo-image"><source type="image/avif"[^>]*>\s*<img\b',
+                markup,
+            )
+        else:
+            assert re.search(r'<picture class="promo-image"><img\b', markup)
         assert 'srcset="/pic.jpg/@@images/image/larger 1000w' in markup
 
-    def test_the_avif_source_twins_the_ladder(self):
+    def test_the_avif_source_twins_the_ladder(self, picture_delivery):
         markup = self._scaled()
-        source = re.search(r"<source[^>]*>", markup).group(0)
-        assert "/pic.jpg/@@images/image/larger.avif 1000w" in source
-        assert "/pic.jpg/@@images/image/preview.avif 400w" in source
-        assert "/pic.jpg/@@images/image/huge.avif 1600w" in source
-        assert 'sizes="(min-width: 940px) 940px, 100vw"' in source
+        source = re.search(r"<source[^>]*>", markup)
+        if picture_delivery:
+            assert source is not None
+            assert "/pic.jpg/@@images/image/larger.avif 1000w" in source.group(0)
+            assert "/pic.jpg/@@images/image/preview.avif 400w" in source.group(0)
+            assert "/pic.jpg/@@images/image/huge.avif 1600w" in source.group(0)
+            assert 'sizes="(min-width: 940px) 940px, 100vw"' in source.group(0)
+        else:
+            assert source is None
         assert 'src="/pic.jpg/@@images/image/larger"' in markup
 
     @pytest.mark.parametrize(

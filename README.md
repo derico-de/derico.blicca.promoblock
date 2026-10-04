@@ -32,9 +32,9 @@ Aurora frontend directly, see [Using the block in Aurora](#using-the-block-in-au
   card clickable.
 - **Responsive images.** Only the reference to the image is stored. The
   public page serves the picture variant that fits the block width and the
-  placement, with `srcset`, `sizes` and an AVIF alternative, computed on
-  every load. A rescaled or deleted picture never leaves a broken `<img>`
-  behind.
+  placement, with `srcset` and `sizes`, computed on every load. An AVIF
+  alternative is included when the host's `plone.namedfile` supports it.
+  A rescaled or deleted picture never leaves a broken `<img>` behind.
 - **Honest editor preview.** The canvas shows which fields are still empty
   and explains anything the author typed that will not render, such as an
   action with a label but no link.
@@ -117,7 +117,7 @@ empty, so an empty promo is one `<div>`.
 <a class="promo-cardlink" href="…">                <!-- only with an active card link -->
   <div class="promo has--align--left">
     <picture class="promo-image">                  <!-- only with an image -->
-      <source type="image/avif" srcset="…" sizes="…">   <!-- public page only -->
+      <source type="image/avif" srcset="…" sizes="…">   <!-- public page, when AVIF is available -->
       <img src="…" srcset="…" sizes="…" width="…" height="…"
            alt="" loading="lazy" decoding="async">
     </picture>
@@ -137,9 +137,9 @@ empty, so an empty promo is one `<div>`.
 - The root `div.promo` always carries `has--align--<value>` with the
   placement that is actually in effect: `center` whenever there is no image,
   whatever was stored.
-- The public page carries the responsive attributes on the `<img>` and one
-  AVIF `<source>` in front of it. The React renderer emits the same elements
-  and classes with a plain `<img>`.
+- The public page carries the responsive attributes on the `<img>` and,
+  when the host supplies AVIF, one AVIF `<source>` in front of it. The React
+  renderer emits the same elements and classes with a plain `<img>`.
 - The action style is spelled as a class, `promo-cta-button` or
   `promo-cta-link`. There is no class for primary or secondary; DOM order
   tells them apart.
@@ -163,9 +163,9 @@ touches:
 3. The public renderer picks the smallest of the site's picture variants
    (`small`, `medium`, `large` or `fullwidth`) that covers the width the
    image can get, derived from the block width and the placement, and puts
-   its `srcset` on the `<img>` with a matching `sizes`. The AVIF twin of that
-   ladder goes into a `<source>` in front. An SVG or an external image URL
-   gets a plain `<img>`.
+   its `srcset` on the `<img>` with a matching `sizes`. When supplied by
+   `plone.namedfile`, the AVIF twin of that ladder goes into a `<source>` in
+   front. An SVG or an external image URL gets a plain `<img>`.
 4. The React renderer reads `image_url`. A freshly picked image that has not
    been serialized yet is previewed from the reference itself, and
    `image_ref` lets the canvas tell a stale derived set from a fresh one.
