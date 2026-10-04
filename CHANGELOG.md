@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0a1 (unreleased)
+## 1.0.0a1 (2026-10-04)
 
 - The promo image offers AVIF: one `<source type="image/avif">` in front of
   the `<img>`, the ladder's twin in the smaller encoding (served on demand
