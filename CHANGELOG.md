@@ -3,7 +3,9 @@
 ## 1.0.0a2 (unreleased)
 
 
-- Nothing changed yet.
+- Fix CI picture tests to cover both stock and AVIF-capable `plone.namedfile`
+  output. AVIF delivery is optional; the released dependency does not yet
+  provide it.
 
 
 ## 1.0.0a1 (2026-10-04)
