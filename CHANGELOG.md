@@ -2,8 +2,10 @@
 
 ## 1.0.0a2 (unreleased)
 
-
-- Nothing changed yet.
+- The description uses the editor's own `textarea` widget instead of the
+  block's `promo_textarea`, which is gone. Needs a plone.blicca.auroraeditor
+  that registers `textarea`; with an older one, or in Aurora proper, the
+  description is a single-line input.
 
 
 ## 1.0.0a1 (2026-10-04)

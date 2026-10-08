@@ -169,9 +169,9 @@ describe('properties', () => {
     expect(upstream.getWidget('image')).toBeDefined();
   });
 
-  it('route the three link fields and the description through namespaced widgets', () => {
+  it('give the description the host textarea and the links namespaced widgets', () => {
     const properties = PromoSchema().properties as Record<string, any>;
-    expect(properties.description.widget).toBe('promo_textarea');
+    expect(properties.description.widget).toBe('textarea');
     for (const field of ['card_link', 'cta_primary_link', 'cta_secondary_link']) {
       expect(properties[field].widget).toBe('promo_link');
     }

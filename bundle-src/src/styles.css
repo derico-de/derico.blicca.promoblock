@@ -48,8 +48,8 @@
  *
  * ── what is deliberately NOT here ───────────────────────────────────────
  *
- * The three promo widgets (`promo-textarea-widget`, `promo-select-widget`,
- * `promo-link-widget`). This file is scope-wrapped to roots that exist in
+ * The promo widgets (`promo-select-widget`, `promo-link-widget`,
+ * `promo-image-widget`). This file is scope-wrapped to roots that exist in
  * Blicca and nowhere in Aurora proper, so it cannot reach the sidebar there;
  * the widgets carry the host's own metrics instead (ticket 07).
  */

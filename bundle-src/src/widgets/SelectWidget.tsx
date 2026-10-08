@@ -26,7 +26,7 @@
  *      nothing were selected, which would show `Button` over storage that
  *      says otherwise.
  *
- * Controlled, unlike `promo_textarea`: a select has no caret to lose, and
+ * Controlled, unlike the link input: a select has no caret to lose, and
  * reflecting stored state is worth more here than insulation from the
  * round trip.
  */

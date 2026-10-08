@@ -2,10 +2,11 @@
  * An Aurora-shaped registry, and nothing more.
  *
  * Ticket 02 established that Blicca is upstream **plus deltas**, and that
- * the deltas are the risk this block carries: `choices` and
+ * the deltas are the risk this block carries: `choices`, `textarea` and
  * `backgroundColor`'s `styleFieldDefinition` are registered by the Blicca
- * wrapper and by nobody upstream, so a field that leans on either silently
- * degrades to a single-line text input in Aurora proper.
+ * wrapper and by nobody upstream, so a field that leans on one silently
+ * degrades to a single-line text input in Aurora proper. The description
+ * leans on `textarea` knowingly (ADR 0001).
  *
  * ## This used to be a transcription. Ticket 15 replaced it with the real thing.
  *
@@ -193,6 +194,7 @@ export function choicesWidgetOf(config: UpstreamConfig): unknown {
 
 export const BLICCA_ONLY_REGISTRATIONS = {
   widgetKeys: ['choices'],
+  namedWidgets: ['textarea'],
   styleFieldDefinitions: ['backgroundColor'],
   substitutedWidgets: ['object_browser', 'image', 'boolean', 'querystring'],
 } as const;

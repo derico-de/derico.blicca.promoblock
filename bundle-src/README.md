@@ -51,23 +51,22 @@ genuinely is not on npm: a registry carrying **Aurora's registrations and no
 more**, so a field that only works because the Blicca wrapper registered
 something fails here rather than in production.
 
-## The four sidebar widgets
+## The three sidebar widgets
 
-`src/widgets/` registers `promo_textarea`, `promo_select`, `promo_link` and
-`promo_image` from `install()`. The first three exist because the ecosystem has
-no working
-implementation of any of them: `textarea` and `select` are declared in the
+`src/widgets/` registers `promo_select`, `promo_link` and `promo_image` from
+`install()`. `promo_select` exists because `select` is declared in the
 widget-type union and implemented by nobody, and `choices` is registered only
 by the Blicca wrapper — so a field leaning on it renders a select in
-`@@aurora-edit` and a bare text input in Aurora proper. With the Promo edited
-from the sidebar only, that is the difference between an authorable block and
-single-line inputs everywhere.
+`@@aurora-edit` and a bare text input in Aurora proper.
+
+The description names the host's `textarea` widget instead of shipping one.
+Blicca registers it; Aurora proper does not, so there the description is a
+single-line input.
 
 **Namespaced keys, always.** `registerWidget` writes into one global
-last-wins map, so claiming `textarea` would change every other block's fields
-in the host, Aurora's own teaser description included. Repairing that for the
-ecosystem is a good idea and an upstream patch — not a side effect of
-installing this block.
+last-wins map, so claiming a generic key would change every other block's
+fields in the host. Repairing that for the ecosystem is an upstream patch —
+not a side effect of installing this block.
 
 `promo_link` is the composite one: a text input over a bare string, plus a
 Browse disclosure that mounts **the host's own** picker, looked up as

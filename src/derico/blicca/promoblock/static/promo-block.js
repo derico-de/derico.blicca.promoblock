@@ -276,9 +276,9 @@ function PromoSchema({
       // teaser<->promo migration stays a rename-free copy.
       head_title: { title: "Kicker" },
       title: { title: "Title" },
-      // Namespaced, never the generic `textarea`: claiming that key would
-      // silently change every other block's fields in this host.
-      description: { title: "Description", widget: "promo_textarea" },
+      // The host's multi-line field. Blicca registers `textarea`; Aurora
+      // proper does not, and there the description is a single line.
+      description: { title: "Description", widget: "textarea" },
       // Named `image` DELIBERATELY: it is the name on disk, the one the server
       // half reads, and the one a teaser<->promo copy keeps. Do not "fix" it by
       // renaming it or by matching Aurora's image block, which spells it
@@ -345,32 +345,6 @@ function FieldShell({
         render(controlId),
         description ? /* @__PURE__ */ jsx("p", { className: "text-xs font-normal text-quanta-pigeon", children: description }) : null
       ]
-    }
-  );
-}
-const asText$2 = (value) => typeof value === "string" ? value : value == null ? "" : String(value);
-function PromoTextareaWidget(props) {
-  const { label, description, className, onChange } = props;
-  return /* @__PURE__ */ jsx(
-    FieldShell,
-    {
-      blockClass: "promo-textarea-widget",
-      label,
-      description,
-      className,
-      render: (controlId) => /* @__PURE__ */ jsx(
-        "textarea",
-        {
-          id: controlId,
-          name: props.name,
-          rows: props.rows ?? 4,
-          required: props.required,
-          placeholder: props.placeholder,
-          defaultValue: asText$2(props.value ?? props.defaultValue),
-          onChange: (event) => onChange?.(event.target.value),
-          className: controlClass
-        }
-      )
     }
   );
 }
@@ -545,7 +519,6 @@ function PromoImageWidget(props) {
   );
 }
 const PROMO_WIDGETS = {
-  promo_textarea: PromoTextareaWidget,
   promo_select: PromoSelectWidget,
   promo_link: PromoLinkWidget,
   promo_image: PromoImageWidget

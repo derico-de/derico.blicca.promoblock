@@ -167,11 +167,20 @@ describe('the absence of Blicca', () => {
     }
   });
 
-  it('has no `textarea` or `select` — the keys we deliberately did not claim', () => {
-    // Registering either would repair Aurora's own teaser everywhere, which
-    // is an upstream patch and not a side effect of installing this block
+  it('registers no `textarea` — the description is a single line here', () => {
+    // Blicca's wrapper registers it; the promo names it rather than ship its
+    // own (ADR 0001), and accepts the one-line description in Aurora proper.
+    expect(BLICCA_ONLY_REGISTRATIONS.namedWidgets).toEqual(['textarea']);
+    for (const key of BLICCA_ONLY_REGISTRATIONS.namedWidgets) {
+      expect(aurora.getWidget(key)).toBeUndefined();
+    }
+  });
+
+  it('has no `select` — a key we deliberately did not claim', () => {
+    // Registering it would change every other block's fields, which is an
+    // upstream patch and not a side effect of installing this block
     // (CONTEXT.md, and the map's out-of-scope list).
-    for (const key of ['textarea', 'select', 'color_picker']) {
+    for (const key of ['select', 'color_picker']) {
       expect(aurora.getWidget(key)).toBeUndefined();
     }
   });
@@ -179,14 +188,15 @@ describe('the absence of Blicca', () => {
 
 describe('every promo field resolves to the widget it was designed for', () => {
   // Ticket 15's central risk: "no field may quietly fall through to the
-  // default single-line input". Four fields fall through DELIBERATELY — a
-  // kicker, a title and two action labels are single-line text — so the
+  // default single-line input". Five fields fall through DELIBERATELY — a
+  // kicker, a title and two action labels are single-line text, and the
+  // description names Blicca's `textarea`, which Aurora proper lacks — so the
   // claim is not "nothing falls through" but "exactly these, and nothing
   // else". Spelled as a table so a schema change has to come here and say so.
   const EXPECTED: Record<string, 'ours' | 'upstream' | 'default' | 'absent'> = {
     head_title: 'default',
     title: 'default',
-    description: 'ours',
+    description: 'default',
     image: 'ours',
     align: 'upstream',
     cta_primary_label: 'default',

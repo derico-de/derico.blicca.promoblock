@@ -1,5 +1,5 @@
 /**
- * Ticket 07's suite: the four sidebar widgets, mounted against the
+ * Ticket 07's suite: the three sidebar widgets, mounted against the
  * **upstream** registry fixture.
  *
  * The fixture is the point. `test/upstream-registry.ts` registers what
@@ -28,7 +28,6 @@ import {
   PromoImageWidget,
   PromoLinkWidget,
   PromoSelectWidget,
-  PromoTextareaWidget,
   storedLinkFor,
 } from '../src/widgets';
 import {
@@ -82,14 +81,15 @@ function renderField(
 }
 
 describe('registration', () => {
-  it('registers all four under namespaced keys', () => {
+  it('registers all three under namespaced keys', () => {
     for (const [key, widget] of Object.entries(PROMO_WIDGETS)) {
       expect(upstream.getWidget(key)).toBe(widget);
     }
   });
 
   it('claims no generic key — the ecosystem-wide fix is not ours to make', () => {
-    // `textarea` and `select` stay unimplemented; `choices` stays Blicca-only.
+    // `textarea` and `choices` are the host's to register (Blicca does);
+    // `select` and `color_picker` stay unimplemented.
     for (const key of ['textarea', 'select', 'color_picker']) {
       expect(upstream.getWidget(key)).toBeUndefined();
     }
@@ -110,57 +110,6 @@ describe('registration', () => {
     // they replaced were the only reason that spelling ever passed.)
     expect(upstream.getWidget('align')).toBe(UpstreamAlignWidget);
     expect(upstream.getWidget('image')).toBe(UpstreamImageWidget);
-  });
-});
-
-describe('promo_textarea', () => {
-  const property = { title: 'Description', widget: 'promo_textarea' };
-
-  it('names the control from the schema title, associated for real', () => {
-    renderField(PromoTextareaWidget, property);
-    const field = screen.getByLabelText('Description');
-    expect(field.tagName).toBe('TEXTAREA');
-    // The block sidebar passes no `id`; the widget must supply one anyway.
-    expect(field.getAttribute('id')).toBeTruthy();
-  });
-
-  it('round-trips the value through onChange', () => {
-    const onChange = vi.fn();
-    renderField(PromoTextareaWidget, property, {
-      name: 'description',
-      storedValue: 'Ein CMS.',
-      onChange,
-    });
-    const field = screen.getByLabelText('Description') as HTMLTextAreaElement;
-    expect(field.value).toBe('Ein CMS.');
-    fireEvent.change(field, { target: { value: 'Ein CMS, das bleibt.' } });
-    expect(onChange).toHaveBeenCalledWith('Ein CMS, das bleibt.');
-  });
-
-  it('emits the empty string when cleared, which the schema reads as unfilled', () => {
-    const onChange = vi.fn();
-    renderField(PromoTextareaWidget, property, { storedValue: 'x', onChange });
-    fireEvent.change(screen.getByLabelText('Description'), {
-      target: { value: '' },
-    });
-    expect(onChange).toHaveBeenCalledWith('');
-  });
-
-  it('renders a missing value as an empty control, not "undefined"', () => {
-    renderField(PromoTextareaWidget, property);
-    expect((screen.getByLabelText('Description') as HTMLTextAreaElement).value).toBe('');
-  });
-
-  it('does not swallow keys the surrounding editor listens for', () => {
-    // The sidebar portals out of Plate's afterEditable slot, so it is a
-    // sibling of the Editable and a guard here would only break the
-    // document-level listeners. Assert the absence of one.
-    const seen = vi.fn();
-    document.addEventListener('keydown', seen);
-    renderField(PromoTextareaWidget, property);
-    fireEvent.keyDown(screen.getByLabelText('Description'), { key: 'Enter' });
-    document.removeEventListener('keydown', seen);
-    expect(seen).toHaveBeenCalled();
   });
 });
 

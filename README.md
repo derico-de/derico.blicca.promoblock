@@ -283,6 +283,8 @@ every other field to an upstream Aurora widget.
 - **The Python package must still be installed on the backend.** The React
   `view` reads the derived image keys the server injects. Without it the
   image does not render.
+- **The description is a single line.** It asks for the `textarea` widget,
+  which the Blicca editor registers and Aurora does not.
 - **The image field has no label and shows no current selection.** This is
   the host image widget's own shape in both hosts. The canvas is where the
   chosen picture is visible.

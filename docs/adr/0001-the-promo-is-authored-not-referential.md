@@ -71,6 +71,11 @@ ships no overwrite mechanism. Reference semantics stay with Aurora's teaser.**
    avoided the name to protect its own widget; here the host's widget is the
    thing we want.
 
+   AMENDED (1.0.0a2): the description no longer ships `promo_textarea`. The
+   Blicca editor now registers the generic `textarea`, so the schema names
+   that — the deletion the namespacing was for. In Aurora proper the
+   description falls back to a single-line input, accepted knowingly.
+
    AMENDED by ADR 0004: the field keeps that name and the host's widget still
    picks and uploads, but it is reached through a `promo_image` wrapper that
    adds the clear action neither host offers. The schema declares

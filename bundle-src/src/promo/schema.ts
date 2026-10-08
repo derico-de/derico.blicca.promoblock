@@ -155,9 +155,9 @@ export function PromoSchema({
       // teaser<->promo migration stays a rename-free copy.
       head_title: { title: 'Kicker' },
       title: { title: 'Title' },
-      // Namespaced, never the generic `textarea`: claiming that key would
-      // silently change every other block's fields in this host.
-      description: { title: 'Description', widget: 'promo_textarea' },
+      // The host's multi-line field. Blicca registers `textarea`; Aurora
+      // proper does not, and there the description is a single line.
+      description: { title: 'Description', widget: 'textarea' },
 
       // Named `image` DELIBERATELY: it is the name on disk, the one the server
       // half reads, and the one a teaser<->promo copy keeps. Do not "fix" it by

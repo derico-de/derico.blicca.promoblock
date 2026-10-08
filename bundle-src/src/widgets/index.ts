@@ -1,12 +1,13 @@
 /**
- * The Promo's four sidebar widgets and their registration.
+ * The Promo's three sidebar widgets and their registration. The description
+ * takes the host's own `textarea`.
  *
  * All three keys are **namespaced**. `registerWidget` writes into one global
  * last-wins map (`_data.widgets[key][widgetKey] = definition[widgetKey]`),
  * so a block claiming a generic key changes every other block's fields in
- * the host. `textarea` and a working `choices` are both worth fixing for the
- * ecosystem — as an upstream patch, not as a side effect of installing this
- * block (map: out of scope).
+ * the host. A working `choices` is worth fixing for the ecosystem — as an
+ * upstream patch, not as a side effect of installing this block (map: out
+ * of scope).
  *
  * `key: 'widget'` puts them where `Field.tsx`'s `getWidgetByName` looks —
  * the lane a schema selects with `widget: 'promo_select'`. The category is
@@ -14,12 +15,10 @@
  * flat, so the name is what must not collide, and `promo_` is what keeps it
  * from colliding.
  */
-import { PromoTextareaWidget } from './TextareaWidget';
 import { PromoSelectWidget } from './SelectWidget';
 import { PromoLinkWidget } from './LinkWidget';
 import { PromoImageWidget } from './ImageWidget';
 
-export { PromoTextareaWidget } from './TextareaWidget';
 export { PromoSelectWidget } from './SelectWidget';
 export { PromoLinkWidget, storedLinkFor } from './LinkWidget';
 export { PromoImageWidget } from './ImageWidget';
@@ -38,7 +37,6 @@ type WidgetRegistrar = {
  * searches every category flat, so one registration serves both lanes.
  */
 export const PROMO_WIDGETS = {
-  promo_textarea: PromoTextareaWidget,
   promo_select: PromoSelectWidget,
   promo_link: PromoLinkWidget,
   promo_image: PromoImageWidget,

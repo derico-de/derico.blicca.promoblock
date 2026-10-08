@@ -117,8 +117,9 @@ export function PromoLinkWidget(props: PromoLinkWidgetProps) {
       // truth here and may hold a typed mailto: the picker cannot express.
       const next = storedLinkFor(selected?.[0]);
       if (!next) return;
-      // The input is uncontrolled (see PromoTextareaWidget on why), so a
-      // programmatic set has to reach the DOM node itself.
+      // The input is uncontrolled — the renderer hands `defaultValue` and
+      // re-runs the schema on every change, so a controlled input would put
+      // the caret at risk — and a programmatic set has to reach the DOM node.
       if (inputRef.current) inputRef.current.value = next;
       onChange?.(next);
       setBrowsing(false);
