@@ -7,6 +7,10 @@
   that registers `textarea`; with an older one, or in Aurora proper, the
   description is a single-line input.
 
+- Fix CI picture tests to cover both stock and AVIF-capable `plone.namedfile`
+  output. AVIF delivery is optional; the released dependency does not yet
+  provide it.
+
 
 ## 1.0.0a1 (2026-10-04)
 
