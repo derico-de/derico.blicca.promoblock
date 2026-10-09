@@ -20,6 +20,7 @@ class HiddenProfiles:
         return [
             "derico.blicca.promoblock:uninstall",
             "derico.blicca.promoblock.upgrades:1001",
+            "derico.blicca.promoblock.upgrades:1002",
         ]
 
 

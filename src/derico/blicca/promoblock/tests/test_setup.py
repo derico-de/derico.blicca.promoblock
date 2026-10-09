@@ -74,7 +74,7 @@ class TestSetup:
         from the slash menu without erroring.
         """
         record = block_addon_records()[RECORD_NAME]
-        assert record.block_api == "1.0"
+        assert record.block_api == "2.0"
         host = blockaddons.host_block_api()
         assert blockaddons.is_compatible(record.block_api, host)
 

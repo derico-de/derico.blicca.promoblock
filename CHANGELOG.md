@@ -2,6 +2,10 @@
 
 ## 1.0.0a2 (unreleased)
 
+- Declare block-api 2.0 for the Plate 53 editor (upgrade step 1002). A 2.0
+  host skips every 1.x declaration. The bundle needs no rebuild: it imports
+  none of the `platejs` names 2.0 removed.
+
 - The description uses the editor's own `textarea` widget instead of the
   block's `promo_textarea`, which is gone. Needs a plone.blicca.auroraeditor
   that registers `textarea`; with an older one, or in Aurora proper, the

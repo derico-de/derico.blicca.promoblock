@@ -38,11 +38,12 @@ DEFAULT_REGISTRY = PACKAGE / "profiles" / "default" / "registry.xml"
 UPGRADE_REGISTRY = PACKAGE / "upgrades" / "1001" / "registry.xml"
 
 
-def normalized(path):
+def normalized(path, ignore=()):
     """The XML's structure, stripped of comments and whitespace.
 
     ElementTree drops comments while parsing, so the two files' prose may
-    differ freely; only what GenericSetup acts on is compared.
+    differ freely; only what GenericSetup acts on is compared. `<value>`
+    nodes whose key is in `ignore` are left out.
     """
 
     def walk(elem):
@@ -51,7 +52,11 @@ def normalized(path):
             elem.tag,
             tuple(sorted(elem.attrib.items())),
             text,
-            tuple(walk(child) for child in elem),
+            tuple(
+                walk(child)
+                for child in elem
+                if not (child.tag == "value" and child.get("key") in ignore)
+            ),
         )
 
     # S314: the two files parsed here are this package's own committed
@@ -88,8 +93,12 @@ class TestUpgradeProfileParity:
         install imports and the mini profile is what a site at 1000 imports,
         and GenericSetup gives no way to point the second at the first. So
         the copy is held identical here instead.
+
+        Except `block_api`: 1002 moved it on to 2.0, and its test holds that.
         """
-        assert normalized(UPGRADE_REGISTRY) == normalized(DEFAULT_REGISTRY)
+        assert normalized(UPGRADE_REGISTRY, ignore={"block_api"}) == normalized(
+            DEFAULT_REGISTRY, ignore={"block_api"}
+        )
 
 
 class TestUpgrade1001:
@@ -129,14 +138,16 @@ class TestUpgrade1001:
         assert any(s["dest"] == ("1001",) for s in flattened)
 
     def test_upgrade_reinstates_the_record(self):
-        """Running the upgrade leaves the site with a loadable add-on."""
+        """The upgrade path leaves the site with a loadable add-on."""
         self._rewind_to_1000()
 
-        self.setup_tool.upgradeProfile(PROFILE)
+        self.setup_tool.upgradeProfile(PROFILE, dest="1001")
 
         assert self.setup_tool.getLastVersionForProfile(PROFILE) == ("1001",)
         record = block_addon_records()[RECORD_NAME]
         assert record.bundle == "++plone++derico.blicca.promoblock/promo-block.js"
+        # Loadable once 1002 declared block-api 2.0, too.
+        self.setup_tool.upgradeProfile(PROFILE)
         statuses = {s.name: s for s in blockaddons.evaluate(self.portal)}
         assert statuses[RECORD_NAME].loadable
 
