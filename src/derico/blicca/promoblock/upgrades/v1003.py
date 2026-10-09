@@ -15,15 +15,7 @@ RECORD_NAME = "derico.blicca.promoblock.promo"
 
 
 def upgrade(context):
-    """Delete this add-on's own ``<prefix>/<record>.block_api`` record.
-
-    Block add-ons are checked by the names their bundles import (ADR 0024,
-    plone.blicca.auroraeditor), not by a declared ``block_api`` version. A
-    site that installed an earlier release of this add-on may still hold
-    the orphaned record; a fresh 1003 install never creates one.
-
-    Upgrade from profile version 1002 to 1003.
-    """
+    """Delete this add-on's own orphaned block_api record (ADR 0024)."""
     logger.info("Running upgrade step: Delete the block_api record")
     key = f"{BLOCKADDON_PREFIX}/{RECORD_NAME}.block_api"
     records = getUtility(IRegistry).records

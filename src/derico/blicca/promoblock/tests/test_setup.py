@@ -67,10 +67,9 @@ class TestSetup:
         assert record.weight == 100
 
     def test_blockaddon_record_has_no_block_api(self):
-        """block_api is retired (ADR 0024): compatibility is checked by the
-        names the bundle imports, not a declared version."""
-        record = block_addon_records()[RECORD_NAME]
-        assert not hasattr(record, "block_api")
+        """block_api is retired (ADR 0024): the record no longer carries it."""
+        registry = getUtility(IRegistry)
+        assert f"{blockaddons.BLOCKADDON_PREFIX}/{RECORD_NAME}.block_api" not in registry.records
 
     def test_blockaddon_record_is_ungated(self):
         """No insert permission: the block is generic and for every editor."""

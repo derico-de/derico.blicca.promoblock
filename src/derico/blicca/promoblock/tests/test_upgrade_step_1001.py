@@ -38,12 +38,11 @@ DEFAULT_REGISTRY = PACKAGE / "profiles" / "default" / "registry.xml"
 UPGRADE_REGISTRY = PACKAGE / "upgrades" / "1001" / "registry.xml"
 
 
-def normalized(path, ignore=()):
+def normalized(path):
     """The XML's structure, stripped of comments and whitespace.
 
     ElementTree drops comments while parsing, so the two files' prose may
-    differ freely; only what GenericSetup acts on is compared. `<value>`
-    nodes whose key is in `ignore` are left out.
+    differ freely; only what GenericSetup acts on is compared.
     """
 
     def walk(elem):
@@ -52,11 +51,7 @@ def normalized(path, ignore=()):
             elem.tag,
             tuple(sorted(elem.attrib.items())),
             text,
-            tuple(
-                walk(child)
-                for child in elem
-                if not (child.tag == "value" and child.get("key") in ignore)
-            ),
+            tuple(walk(child) for child in elem),
         )
 
     # S314: the two files parsed here are this package's own committed
