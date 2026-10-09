@@ -66,17 +66,11 @@ class TestSetup:
         assert record.enabled
         assert record.weight == 100
 
-    def test_blockaddon_record_declares_the_api_floor(self):
-        """`block_api` is the floor the bundle needs, not the host's version.
-
-        Declaring the host's current version would strand this block on the
-        next host bump, and a mismatch is a fail-soft skip: the block vanishes
-        from the slash menu without erroring.
-        """
+    def test_blockaddon_record_has_no_block_api(self):
+        """block_api is retired (ADR 0024): compatibility is checked by the
+        names the bundle imports, not a declared version."""
         record = block_addon_records()[RECORD_NAME]
-        assert record.block_api == "2.0"
-        host = blockaddons.host_block_api()
-        assert blockaddons.is_compatible(record.block_api, host)
+        assert not hasattr(record, "block_api")
 
     def test_blockaddon_record_is_ungated(self):
         """No insert permission: the block is generic and for every editor."""
