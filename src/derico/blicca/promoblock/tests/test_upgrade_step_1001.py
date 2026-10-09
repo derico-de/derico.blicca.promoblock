@@ -93,12 +93,8 @@ class TestUpgradeProfileParity:
         install imports and the mini profile is what a site at 1000 imports,
         and GenericSetup gives no way to point the second at the first. So
         the copy is held identical here instead.
-
-        Except `block_api`: 1002 moved it on to 2.0, and its test holds that.
         """
-        assert normalized(UPGRADE_REGISTRY, ignore={"block_api"}) == normalized(
-            DEFAULT_REGISTRY, ignore={"block_api"}
-        )
+        assert normalized(UPGRADE_REGISTRY) == normalized(DEFAULT_REGISTRY)
 
 
 class TestUpgrade1001:

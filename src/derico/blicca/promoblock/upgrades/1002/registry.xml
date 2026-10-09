@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <registry>
+  <!-- block_api is retired (ADR 0024, plone.blicca.auroraeditor). The only
+       value this step ever set is gone, so importing it now sets nothing;
+       the step stays wired so a site still in transit reaches 1002. -->
   <records
       interface="plone.blicca.auroraeditor.interfaces.IAuroraBlockAddon"
       prefix="plone.blicca.auroraeditor.blockaddons/derico.blicca.promoblock.promo"
       >
-    <value key="block_api">2.0</value>
   </records>
 </registry>
