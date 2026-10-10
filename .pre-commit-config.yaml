@@ -1,3 +1,5 @@
+# Build output, scaffold metadata and planning records are not authored code.
+exclude: '^(\.copier-answers.*\.ya?ml$|src/.*/static/|src/.*/upgrades/[^/]+/metadata\.txt$|\.scratch/)'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
