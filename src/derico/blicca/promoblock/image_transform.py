@@ -66,7 +66,7 @@ def stored_image(value):
     ``[{'@id': ...}]`` as a Volto-era defence. Accept what it accepts; we
     never write those shapes back.
     """
-    if isinstance(value, (list, tuple)):
+    if isinstance(value, list | tuple):
         value = value[0] if value else None
     if isinstance(value, dict):
         value = value.get("@id") or value.get("url")

@@ -68,10 +68,7 @@ FIXTURE = Path(__file__).resolve().parents[5] / "tests" / "anatomy-cases.json"
 
 CASE_NAME = "reference-case-the-contact-band"
 
-CASES = {
-    case["name"]: case
-    for case in json.loads(FIXTURE.read_text(encoding="utf-8"))["cases"]
-}
+CASES = {case["name"]: case for case in json.loads(FIXTURE.read_text(encoding="utf-8"))["cases"]}
 
 
 def band_node(**overrides):

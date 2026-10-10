@@ -110,9 +110,7 @@ def skeleton(html):
     The AVIF ``<source>`` the page puts before the ``<img>`` is delivery, not
     anatomy — the editor never serves AVIF — so it is dropped before comparing.
     """
-    return _rewrite(
-        _AVIF_SOURCE.sub("", html), lambda a: a if a.startswith("class=") else ""
-    )
+    return _rewrite(_AVIF_SOURCE.sub("", html), lambda a: a if a.startswith("class=") else "")
 
 
 class PromoViewTestCase:
@@ -517,11 +515,16 @@ class TestThePicture(PromoViewTestCase):
     }
 
     def _scaled(self, **extra):
-        return self.render(dict({
-            "image_url": "/pic.jpg/@@images/image/large",
-            "image_field": "image",
-            "image_scales": self.SCALES,
-        }, **extra))
+        return self.render(
+            dict(
+                {
+                    "image_url": "/pic.jpg/@@images/image/large",
+                    "image_field": "image",
+                    "image_scales": self.SCALES,
+                },
+                **extra,
+            )
+        )
 
     def test_scales_bring_intrinsic_dimensions(self):
         # width/height are what stop the picture reflowing the page as it loads.
@@ -553,9 +556,7 @@ class TestThePicture(PromoViewTestCase):
                 avif["type"] = "image/avif"
                 avif["srcset"] = ",\n".join(
                     f"{url}.avif {width}"
-                    for url, width in (
-                        entry.split() for entry in ladder["srcset"].split(",\n")
-                    )
+                    for url, width in (entry.split() for entry in ladder["srcset"].split(",\n"))
                 )
                 ladder.insert_before(avif)
             return picture

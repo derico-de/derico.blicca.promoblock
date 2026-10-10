@@ -84,7 +84,7 @@ PNG = (
 #: rescaling the image behind a promo nobody edited.
 _WIDER_PNG = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x02\x00\x00\x00\x01"
-    b"\x08\x06\x00\x00\x00\xf4\"\x7f\x8a\x00\x00\x00\x0eIDATx\x9cc\xf8\xcf"
+    b'\x08\x06\x00\x00\x00\xf4"\x7f\x8a\x00\x00\x00\x0eIDATx\x9cc\xf8\xcf'
     b"\xc0\xf0\x1f\x84\x01\x11\xf7\x03\xfd\xe3\xc5\xf5\xef\x00\x00\x00"
     b"\x00IEND\xaeB`\x82"
 )
@@ -93,10 +93,7 @@ FIXTURE = Path(__file__).resolve().parents[5] / "tests" / "anatomy-cases.json"
 
 CASE_NAME = "reference-case-image-beside-the-copy"
 
-CASES = {
-    case["name"]: case
-    for case in json.loads(FIXTURE.read_text(encoding="utf-8"))["cases"]
-}
+CASES = {case["name"]: case for case in json.loads(FIXTURE.read_text(encoding="utf-8"))["cases"]}
 
 
 class ReferenceCaseTestCase:
@@ -174,7 +171,7 @@ class ReferenceCaseTestCase:
         opening = html.index(">") + 1
         assert html.startswith("<div "), html[:120]
         assert html.endswith("</div>"), html[-40:]
-        return html[opening:-len("</div>")]
+        return html[opening : -len("</div>")]
 
 
 class TestTheFixtureItReads(ReferenceCaseTestCase):
