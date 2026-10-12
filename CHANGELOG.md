@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0a4 (unreleased)
+## 1.0.0a4 (2026-10-12)
 
 - pre-commit leaves build output, scaffold metadata and `.scratch/` alone,
   and the code is ruff-formatted.
