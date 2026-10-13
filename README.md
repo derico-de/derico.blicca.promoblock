@@ -14,7 +14,7 @@ Typical uses:
 
 The block needs [plone.blicca.auroraeditor](https://github.com/derico-de/plone.blicca.auroraeditor),
 which brings the Aurora editor to Blicca. Its editor half is also a plain
-Aurora block package, `@derico/aurora-promo-block`, that can be used in an
+Aurora block package, `@derico/plone-promo-block`, that can be used in an
 Aurora frontend directly, see [Using the block in Aurora](#using-the-block-in-aurora).
 
 ## Features
@@ -276,7 +276,7 @@ the reasoning.
 ## Using the block in Aurora
 
 The editor half lives in `bundle-src/` as the npm package
-`@derico/aurora-promo-block` (not yet published). It registers the block and
+`@derico/plone-promo-block` (not yet published). It registers the block and
 its three widgets through the usual `install(config)` entry point and resolves
 every other field to an upstream Aurora widget.
 

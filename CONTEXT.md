@@ -2,7 +2,7 @@
 
 The Promo block: an authored appeal placed in the flow of a page. A Blicca block
 add-on (block add-on contract §3.1) whose editor half is published as the Aurora
-npm package `@derico/aurora-promo-block`. Generic by intent — derico.de is its
+npm package `@derico/plone-promo-block`. Generic by intent — derico.de is its
 first consumer, not its subject.
 
 ## Language

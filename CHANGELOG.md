@@ -3,7 +3,8 @@
 ## 1.0.0a5 (unreleased)
 
 
-- Nothing changed yet.
+- Rename the npm package from `@derico/aurora-promo-block` to
+  `@derico/plone-promo-block` (not yet published).
 
 
 ## 1.0.0a4 (2026-10-12)
