@@ -12,7 +12,7 @@
   <genericsetup:registerProfile
       name="default"
       title="Derico Blicca Promoblock"
-      description="Aurora Promo block: an authored promo card with kicker, title, description, image and calls to action"
+      description="Plone Promo block for the Aurora editor: an authored promo card with kicker, title, description, image and calls to action"
       provides="Products.GenericSetup.interfaces.EXTENSION"
       directory="profiles/default"
       />

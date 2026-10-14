@@ -53,7 +53,7 @@ ships no overwrite mechanism. Reference semantics stay with Aurora's teaser.**
    bold, no inline links. The actions carry the links.
 
 4. **Working in Aurora proper is a requirement, not a bonus.** The block is
-   published as `@derico/plone-promo-block` (contract §1.1), so it must be
+   published as `@derico/aurora-promo-block` (contract §1.1), so it must be
    self-sufficient in a host that has no Blicca wrapper. Aurora's sidebar
    registers exactly one text control — a single-line input — and `textarea`,
    `select` and `color_picker` are declared with zero implementations; even

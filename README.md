@@ -13,9 +13,10 @@ Typical uses:
 - a card linking to a campaign page, with a kicker above the headline.
 
 The block needs [plone.blicca.auroraeditor](https://github.com/derico-de/plone.blicca.auroraeditor),
-which brings the Aurora editor to Blicca. Its editor half is also a plain
-Aurora block package, `@derico/plone-promo-block`, that can be used in an
-Aurora frontend directly, see [Using the block in Aurora](#using-the-block-in-aurora).
+which brings the Aurora editor to Blicca. Its editor half is also a plain Plone
+block package for Aurora, `@derico/aurora-promo-block`, that can be used in an
+Aurora frontend directly, see
+[Using the block in Aurora](#using-the-block-in-aurora).
 
 ## Features
 
@@ -144,7 +145,7 @@ empty, so an empty promo is one `<div>`.
   `promo-cta-link`. There is no class for primary or secondary; DOM order
   tells them apart.
 - Block width and background classes are added by the host on a wrapper
-  around this markup, as for every Aurora block.
+  around this markup, as for every Plone block.
 
 ## How it works
 
@@ -276,7 +277,7 @@ the reasoning.
 ## Using the block in Aurora
 
 The editor half lives in `bundle-src/` as the npm package
-`@derico/plone-promo-block` (not yet published). It registers the block and
+`@derico/aurora-promo-block` (not yet published). It registers the block and
 its three widgets through the usual `install(config)` entry point and resolves
 every other field to an upstream Aurora widget.
 

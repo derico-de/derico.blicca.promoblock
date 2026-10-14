@@ -6,7 +6,7 @@ author_email: md@derico.de
 author_name: Maik Derstappen
 github_organization: derico-de
 is_headless: false
-package_description: 'Aurora Promo block: an authored promo card with kicker, title,
+package_description: 'Plone Promo block for the Aurora editor: an authored promo card with kicker, title,
     description, image and calls to action'
 package_name: derico.blicca.promoblock
 package_title: Derico Blicca Promoblock

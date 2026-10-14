@@ -3,8 +3,7 @@
 ## 1.0.0a5 (unreleased)
 
 
-- Rename the npm package from `@derico/aurora-promo-block` to
-  `@derico/plone-promo-block` (not yet published).
+- The descriptions call the Promo block a Plone block, not an Aurora block.
 
 
 ## 1.0.0a4 (2026-10-12)

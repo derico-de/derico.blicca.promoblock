@@ -1,4 +1,4 @@
-# `@derico/plone-promo-block`
+# `@derico/aurora-promo-block`
 
 The Promo block's Aurora half. This is a real npm package (block add-on
 contract §1.1: the editor half belongs to the Aurora ecosystem, Blicca

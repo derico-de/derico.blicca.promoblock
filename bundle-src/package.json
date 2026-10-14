@@ -1,7 +1,7 @@
 {
-  "name": "@derico/plone-promo-block",
+  "name": "@derico/aurora-promo-block",
   "version": "1.0.0-alpha.1",
-  "description": "Aurora promo block: an authored promo card — kicker, title, description, optional image and up to two calls to action",
+  "description": "Plone promo block for Aurora: an authored promo card — kicker, title, description, optional image and up to two calls to action",
   "type": "module",
   "license": "MIT",
   "keywords": [

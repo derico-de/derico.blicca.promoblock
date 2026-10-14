@@ -1,7 +1,7 @@
 [project]
 name = "derico.blicca.promoblock"
 version = "1.0.0a5.dev0"
-description = "Aurora Promo block: an authored promo card with kicker, title, description, image and calls to action"
+description = "Plone Promo block for the Aurora editor: an authored promo card with kicker, title, description, image and calls to action"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "GPL-2.0-or-later"}
@@ -60,7 +60,7 @@ packages = ["src/derico"]
 [tool.plone.backend_addon.settings]
 package_name = "derico.blicca.promoblock"
 package_title = "Derico Blicca Promoblock"
-package_description = "Aurora Promo block: an authored promo card with kicker, title, description, image and calls to action"
+package_description = "Plone Promo block for the Aurora editor: an authored promo card with kicker, title, description, image and calls to action"
 package_folder = "derico/blicca/promoblock"
 plone_version = "6.0"
 is_headless = false
