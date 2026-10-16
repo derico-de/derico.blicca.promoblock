@@ -1,6 +1,6 @@
 [project]
 name = "derico.blicca.promoblock"
-version = "1.0.0a6"
+version = "1.0.0a7.dev0"
 description = "Plone Promo block for the Aurora editor: an authored promo card with kicker, title, description, image and calls to action"
 readme = "README.md"
 requires-python = ">=3.10"
