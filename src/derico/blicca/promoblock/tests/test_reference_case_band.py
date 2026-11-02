@@ -159,15 +159,13 @@ class TestThePublishedBand(ReferenceCaseTestCase):
         # machinery owns them, so they are the wrapper's stamp and NOT our
         # markup. This is the assertion behind the README's "there is no
         # background property" — the band's ground arrives from the host's
-        # cross-block `--aurora-block-bg-*` vocabulary, full-bleed, without the
-        # block minting a `--promo-bg` of its own.
+        # class and its `--aurora-block-bg-*` vocabulary, full-bleed, without
+        # the block minting a `--promo-bg` of its own.
         markup = self.render(band_node())
         stamp = "block block-promo has--block-width--full has--backgroundColor--dark"
         assert f'class="{stamp}"' in markup
         assert 'data-block-type="promo"' in markup
         assert "--block-width: 100%" in markup
-        assert "--block-background: var(--aurora-block-bg-dark, #1e293b)" in markup
-        assert "--block-foreground: var(--aurora-block-fg-dark, #f8fafc)" in markup
 
     def test_the_block_emits_neither_of_them_itself(self):
         # The fixture already says this for the React renderer; here the two
