@@ -3,7 +3,8 @@
 ## 1.0.0a7 (unreleased)
 
 
-- Nothing changed yet.
+- A full-width promo's picture runs to the window's edge again, as a
+  full-width teaser's does. The copy keeps the host's gutter off the edge.
 
 
 ## 1.0.0a6 (2026-10-16)
