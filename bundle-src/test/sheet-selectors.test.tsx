@@ -66,6 +66,12 @@ const SYNTHETIC: { name: string; data: PromoData }[] = [
   },
 ];
 
+/**
+ * The host's wrapper stamp at full width, which the sheet's full-width rules
+ * reach through (its third exception to descent).
+ */
+const FULL_WIDTH_HOST = 'block block-promo has--block-width--full';
+
 /** One document holding every state, so a selector may match in any of them. */
 function corpus(): HTMLElement {
   const root = document.createElement('div');
@@ -74,6 +80,10 @@ function corpus(): HTMLElement {
     // `edit` adds the canvas chrome the sheet also dresses.
     root.append(render(<PromoView data={data} />).container);
     root.append(render(<PromoEdit data={data} />).container);
+    const host = document.createElement('div');
+    host.className = FULL_WIDTH_HOST;
+    host.append(render(<PromoView data={data} />).container);
+    root.append(host);
   }
   return root;
 }

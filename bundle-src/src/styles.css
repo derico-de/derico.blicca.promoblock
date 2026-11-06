@@ -26,10 +26,11 @@
  *    for literal — in both directions, including "no `--promo-*` is declared".
  * 3. DESCENT, NOT NAMES. Every rule descends from `.promo`, the block's own
  *    root — never the host's `.block-promo` wrapper stamp, which belongs to
- *    the host, and this block has two hosts (ticket 17). Two deliberate
- *    exceptions, both marked where they appear: `.promo-cardlink` (the
- *    wrapper, an ANCESTOR of the root) and the editor's `.promo-notice`
- *    chrome, which ticket 17 rule 3 keeps outside the root.
+ *    the host, and this block has two hosts (ticket 17). Three deliberate
+ *    exceptions, all marked where they appear: `.promo-cardlink` (the
+ *    wrapper, an ANCESTOR of the root), the editor's `.promo-notice`
+ *    chrome, which ticket 17 rule 3 keeps outside the root, and the host's
+ *    full-width gutter on `.block-promo`.
  * 4. NEVER SELECT ON `[href]`. The canvas drops every `href` and keeps every
  *    element, tag and class, so `[href]` is the one selector that can tell
  *    the two surfaces apart (ticket 08). `.promo-cardlink` and `.promo-cta`
@@ -184,6 +185,39 @@
   aspect-ratio: var(--promo-image-ratio, auto);
   object-fit: cover;
   border-radius: var(--promo-image-radius, 0);
+}
+
+/* ── full width ─────────────────────────────────────────────────────────
+ *
+ * EXCEPTION TO DESCENT (rule 3), the third: the host pads a full-width
+ * add-on block by `--aurora-addon-gutter` on its own wrapper, so only the
+ * wrapper can take that padding back. The picture then runs to the window's
+ * edge, as a full-width teaser's does, and the copy keeps the host's
+ * `--aurora-bleed-gutter` off the edge instead: on its outer side beside the
+ * picture, on both sides when centred or stacked.
+ */
+
+.block-promo {
+  --aurora-addon-gutter: 0px;
+}
+
+.block-promo.has--block-width--full .promo > .promo-copy {
+  padding-inline: var(--aurora-bleed-gutter, 0px);
+}
+
+.block-promo.has--block-width--full .promo.has--align--left > .promo-copy {
+  padding-inline-start: 0;
+}
+
+.block-promo.has--block-width--full .promo.has--align--right > .promo-copy {
+  padding-inline-end: 0;
+}
+
+@container promo (max-width: 34rem) {
+  .block-promo.has--block-width--full .promo.has--align--left > .promo-copy,
+  .block-promo.has--block-width--full .promo.has--align--right > .promo-copy {
+    padding-inline: var(--aurora-bleed-gutter, 0px);
+  }
 }
 
 /* ── the copy ───────────────────────────────────────────────────────────── */

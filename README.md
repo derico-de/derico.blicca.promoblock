@@ -146,6 +146,9 @@ empty, so an empty promo is one `<div>`.
   tells them apart.
 - Block width and background classes are added by the host on a wrapper
   around this markup, as for every Plone block.
+- The sheet sets the host's `--aurora-addon-gutter` to `0px` on that wrapper,
+  so at full width the picture runs to the window's edge. The copy keeps
+  `--aurora-bleed-gutter` off the edge.
 
 ## How it works
 
