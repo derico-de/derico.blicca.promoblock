@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.0.0a7 (unreleased)
+## 1.0.0a8 (unreleased)
+
+
+- Nothing changed yet.
+
+
+## 1.0.0a7 (2026-11-09)
 
 
 - A full-width promo's picture runs to the window's edge again, as a
