@@ -43,6 +43,7 @@ import json
 from pathlib import Path
 
 import pytest
+from lxml import html
 from plone import api
 from plone.app.testing import login
 from plone.app.testing import logout
@@ -161,11 +162,16 @@ class TestThePublishedBand(ReferenceCaseTestCase):
         # background property" — the band's ground arrives from the host's
         # class and its `--aurora-block-bg-*` vocabulary, full-bleed, without
         # the block minting a `--promo-bg` of its own.
-        markup = self.render(band_node())
-        stamp = "block block-promo has--block-width--full has--backgroundColor--dark"
-        assert f'class="{stamp}"' in markup
-        assert 'data-block-type="promo"' in markup
-        assert "--block-width: 100%" in markup
+        wrapper = html.fromstring(self.render(band_node()))
+        required_classes = {
+            "block",
+            "block-promo",
+            "has--block-width--full",
+            "has--backgroundColor--dark",
+        }
+        assert required_classes <= set(wrapper.get("class", "").split())
+        assert wrapper.get("data-block-type") == "promo"
+        assert "--block-width: 100%" in wrapper.get("style", "")
 
     def test_the_block_emits_neither_of_them_itself(self):
         # The fixture already says this for the React renderer; here the two

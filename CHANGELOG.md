@@ -2,8 +2,8 @@
 
 ## 1.0.0a8 (unreleased)
 
-
-- Nothing changed yet.
+- Check the published wrapper's required classes without rejecting the
+  host's additional background-run markers or depending on class order.
 
 
 ## 1.0.0a7 (2026-11-09)
