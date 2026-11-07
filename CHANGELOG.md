@@ -5,6 +5,10 @@
 
 - A full-width promo's picture runs to the window's edge again, as a
   full-width teaser's does. The copy keeps the host's gutter off the edge.
+- Update the rendering tests for configurable block backgrounds: the host
+  supplies the colours through CSS classes, not inline custom properties.
+- Keep compiled CSS and JavaScript out of Git diffs; the generated files
+  remain tracked and ship with the package.
 
 
 ## 1.0.0a6 (2026-10-16)
