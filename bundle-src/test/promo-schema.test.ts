@@ -60,11 +60,11 @@ describe('the signature', () => {
     // The bug this pins: `FragmentSchema(args?: { data })` reads args.data and
     // always gets undefined. Copying that signature here would make every
     // conditional permanently false.
-    expect(fieldsOf(PromoSchema({ formData: { image: '/pic' } }), 'default')).toContain(
+    expect(fieldsOf(PromoSchema({ formData: { image: '/pic' } }), 'styling')).toContain(
       'align',
     );
     expect(
-      fieldsOf(PromoSchema({ data: { image: '/pic' } } as any), 'default'),
+      fieldsOf(PromoSchema({ data: { image: '/pic' } } as any), 'styling'),
     ).not.toContain('align');
   });
 
@@ -83,20 +83,26 @@ describe('the fieldsets', () => {
     ]);
   });
 
-  it('put `align` last in Default, and only with an image', () => {
-    expect(fieldsOf(PromoSchema(), 'default')).toEqual([
+  it('keep Default to the copy and the image', () => {
+    expect(fieldsOf(PromoSchema({ formData: { image: '/pic', align: 'left' } }), 'default')).toEqual([
       'head_title',
       'title',
       'description',
       'image',
     ]);
-    const fields = fieldsOf(PromoSchema({ formData: { image: '/pic' } }), 'default');
-    expect(fields.at(-1)).toBe('align');
+  });
+
+  it('put `align` under the block width in Styling, and only with an image', () => {
+    expect(fieldsOf(PromoSchema(), 'styling')).toEqual(['blockWidth']);
+    expect(fieldsOf(PromoSchema({ formData: { image: '/pic' } }), 'styling')).toEqual([
+      'blockWidth',
+      'align',
+    ]);
   });
 
   it('put `copy_position` after `align`, and only with the image left or right', () => {
     for (const align of ['left', 'right']) {
-      const fields = fieldsOf(PromoSchema({ formData: { image: '/pic', align } }), 'default');
+      const fields = fieldsOf(PromoSchema({ formData: { image: '/pic', align } }), 'styling');
       expect(fields.slice(-2)).toEqual(['align', 'copy_position']);
     }
     for (const formData of [
@@ -105,7 +111,7 @@ describe('the fieldsets', () => {
       { image: '/pic', align: 'below' },
       { align: 'left' },
     ]) {
-      expect(fieldsOf(PromoSchema({ formData }), 'default')).not.toContain('copy_position');
+      expect(fieldsOf(PromoSchema({ formData }), 'styling')).not.toContain('copy_position');
     }
   });
 

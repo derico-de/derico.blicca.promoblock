@@ -394,9 +394,7 @@ function PromoSchema({
           "head_title",
           "title",
           "description",
-          "image",
-          ...hasImage2 ? ["align"] : [],
-          ...besideCopy2 ? ["copy_position"] : []
+          "image"
         ]
       },
       {
@@ -415,7 +413,14 @@ function PromoSchema({
       {
         id: "styling",
         title: "Styling",
-        fields: ["blockWidth", ...background ? [BACKGROUND_FIELD_NAME] : []]
+        // The background depends on the host, not on form data, so it stays
+        // ahead of the form-data conditionals that form the tail.
+        fields: [
+          "blockWidth",
+          ...background ? [BACKGROUND_FIELD_NAME] : [],
+          ...hasImage2 ? ["align"] : [],
+          ...besideCopy2 ? ["copy_position"] : []
+        ]
       }
     ],
     properties: {

@@ -3,6 +3,8 @@
 ## 1.0.0a9 (unreleased)
 
 
+- Image placement and text style move to the Styling fieldset, under the
+  block width.
 - New "Text style" icon row: with the image left or right, the text sits
   at the top, in the middle or at the bottom beside it, or is sticky and
   stays in view while the image scrolls past. Themes set the sticky top

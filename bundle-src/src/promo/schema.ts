@@ -28,7 +28,7 @@
  *    up rather than importing either.
  *
  * INVARIANT: conditional fields only ever form a fieldset's TAIL, so hiding
- * one never moves a field before it. Default's tail nests: `copy_position`
+ * one never moves a field before it. Styling's tail nests: `copy_position`
  * needs `align`, which needs an image. Asserted in the vitest suite, so fact
  * 2's hazard cannot creep back.
  */
@@ -200,8 +200,6 @@ export function PromoSchema({
           'title',
           'description',
           'image',
-          ...(hasImage ? ['align'] : []),
-          ...(besideCopy ? ['copy_position'] : []),
         ],
       },
       {
@@ -220,7 +218,14 @@ export function PromoSchema({
       {
         id: 'styling',
         title: 'Styling',
-        fields: ['blockWidth', ...(background ? [BACKGROUND_FIELD_NAME] : [])],
+        // The background depends on the host, not on form data, so it stays
+        // ahead of the form-data conditionals that form the tail.
+        fields: [
+          'blockWidth',
+          ...(background ? [BACKGROUND_FIELD_NAME] : []),
+          ...(hasImage ? ['align'] : []),
+          ...(besideCopy ? ['copy_position'] : []),
+        ],
       },
     ],
     properties: {
