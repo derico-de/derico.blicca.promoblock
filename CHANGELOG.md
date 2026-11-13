@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0a8 (unreleased)
+## 1.0.0a8 (2026-11-13)
 
 - Check the published wrapper's required classes without rejecting the
   host's additional background-run markers or depending on class order.
