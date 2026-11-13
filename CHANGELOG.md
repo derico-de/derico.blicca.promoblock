@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0a9 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 1.0.0a8 (2026-11-13)
 
 - Check the published wrapper's required classes without rejecting the
