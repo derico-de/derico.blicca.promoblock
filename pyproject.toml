@@ -29,7 +29,9 @@ dependencies = [
     # (ADR 0024), not by a declared block_api version; the registry record
     # no longer carries one. An older editor reads the missing declaration
     # as incompatible, so this floor is required, not just recommended.
-    "plone.blicca.auroraeditor>=1.0.0a4",
+    # 1.0.0a6: the bundle imports react-i18next for its translated editor
+    # labels, a shared module older editors do not provide.
+    "plone.blicca.auroraeditor>=1.0.0a6",
 ]
 
 [project.optional-dependencies]

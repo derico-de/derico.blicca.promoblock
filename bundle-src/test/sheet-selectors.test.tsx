@@ -39,7 +39,7 @@ const CASES: { name: string; data: PromoData }[] = JSON.parse(
 ).cases;
 
 /**
- * The fixture is 23 `center` cases and one `left`. `right` reverses the grid
+ * The fixture covers `center`, `left` and `below`, never `right`. `right` reverses the grid
  * template and re-places both children, which is three selectors the fixture
  * corpus cannot reach — and a promo with a card link and a title is what the
  * hover affordance hangs off. Written here rather than added to the fixture:

@@ -31,6 +31,14 @@
  * LAST. Asserted in the vitest suite, so fact 2's hazard cannot creep back.
  */
 import { getStyleFieldDefinitionsFromRegistry } from '@plone/helpers';
+import { translate } from '../i18n';
+import { ALIGNMENTS } from './data';
+import {
+  ImageBelowIcon,
+  ImageLeftIcon,
+  ImageRightIcon,
+  ImageTopIcon,
+} from './PlacementIcons';
 
 export const PROMO_BLOCK_TYPE = 'promo';
 
@@ -75,6 +83,32 @@ function backgroundField(data: Record<string, unknown>) {
     choices,
     ...(choices.some(([name]) => name === 'none') ? { default: 'none' } : {}),
     styleField: true,
+  };
+}
+
+const PLACEMENT_ICONS = {
+  center: ImageTopIcon,
+  left: ImageLeftIcon,
+  right: ImageRightIcon,
+  below: ImageBelowIcon,
+};
+
+/**
+ * The host's `align` picker, the icon row the block width uses too, handed
+ * the promo's four placements. Its labels are the icons' `aria-label`s.
+ */
+function placementField() {
+  return {
+    title: translate('promoblock.placement.title'),
+    widget: 'align',
+    actions: [...ALIGNMENTS],
+    actionsInfoMap: Object.fromEntries(
+      ALIGNMENTS.map((value) => [
+        value,
+        [PLACEMENT_ICONS[value], translate(`promoblock.placement.${value}`)],
+      ]),
+    ),
+    default: 'center',
   };
 }
 
@@ -178,13 +212,7 @@ export function PromoSchema({
       // A plain data field, not a style field (mirroring Aurora's image block),
       // so no plugin emits its modifier class — both renderers emit
       // `has--align--<value>` themselves. `center` means image ABOVE the copy.
-      align: {
-        title: 'Image placement',
-        description: 'Where the picture sits. “Center” places it above the text.',
-        widget: 'align',
-        actions: ['left', 'right', 'center'],
-        default: 'center',
-      },
+      align: placementField(),
 
       ...ctaProperties('primary'),
       ...ctaProperties('secondary'),

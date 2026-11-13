@@ -3,7 +3,11 @@
 ## 1.0.0a9 (unreleased)
 
 
-- Nothing changed yet.
+- The image placement offers "Image on top", "Image left", "Image right" and
+  the new "Image below", picked from an icon row like the block width.
+  Existing promos keep their placement.
+- Translate the image placement labels; German ships with the package.
+- Require `plone.blicca.auroraeditor` 1.0.0a6 for translated editor strings.
 
 
 ## 1.0.0a8 (2026-11-13)

@@ -19,13 +19,14 @@ const SHARED_MODULES = [
   'platejs',
   '@plone/registry',
   '@plone/helpers',
+  'react-i18next',
 ];
 
 // A promised module leaking into the bundle means two Reacts at runtime
 // (null hook dispatcher) — fail the build instead (contract §1.2).
 function assertNoSharedInBundle(): Plugin {
   const banned =
-    /\/node_modules\/(?:\.pnpm\/[^/]+\/node_modules\/)?(react|react-dom|jotai|platejs|@plone\/registry|@plone\/helpers)\//;
+    /\/node_modules\/(?:\.pnpm\/[^/]+\/node_modules\/)?(react|react-dom|jotai|platejs|@plone\/registry|@plone\/helpers|react-i18next)\//;
   return {
     name: 'assert-no-shared-in-bundle',
     generateBundle() {

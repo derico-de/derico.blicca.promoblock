@@ -59,12 +59,14 @@ _Avoid_: style, theme, button style (it names the whole axis after one of its
 two values).
 
 **Image placement**:
-Where the picture sits relative to the copy: `left`, `right` or `center`.
-`center` means **image above the copy**, the block stacking rather than sitting
-in a row — Volto's teaser spelling, and the only three values Aurora's align
-widget has icons for. Meaningless without an image, and not offered then.
-_Avoid_: top (no such value exists in Volto core or Aurora; it was a VLT-era
-spelling), alignment (that reads as text alignment), float.
+Where the picture sits relative to the copy: `center`, `left`, `right` or
+`below`. `center` means **image on top of the copy**, the block stacking rather
+than sitting in a row — Volto's teaser spelling, kept as the stored value.
+`below` stacks the other way round. The sidebar shows the four as the promo's
+own icons in Aurora's align widget. Meaningless without an image, and not
+offered then.
+_Avoid_: top (the stored value is `center`; "on top" is only its label),
+alignment (that reads as text alignment), float.
 
 **Theme seam**:
 The custom properties a host theme sets to make the Promo its own — a fixed,

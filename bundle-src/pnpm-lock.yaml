@@ -10,10 +10,10 @@ importers:
     devDependencies:
       '@plone/blocks':
         specifier: 1.0.0-alpha.11
-        version: 1.0.0-alpha.11(@svgr/core@8.1.0(typescript@5.9.3))(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
+        version: 1.0.0-alpha.11(@svgr/core@8.1.0(typescript@5.9.3))(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/cmsui':
         specifier: 1.0.0-alpha.4
-        version: 1.0.0-alpha.4(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.4.1(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
+        version: 1.0.0-alpha.4(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.3.6(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/components':
         specifier: 5.0.0-alpha.1
         version: 5.0.0-alpha.1(@svgr/core@8.1.0(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
@@ -22,7 +22,7 @@ importers:
         version: 2.0.0-alpha.7(@babel/core@7.29.7)(@babel/template@7.29.7)(@plone/registry@4.0.0-alpha.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@plone/layout':
         specifier: 1.0.0-alpha.9
-        version: 1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.4.1(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
+        version: 1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.3.6(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/plate':
         specifier: 1.0.0-alpha.9
         version: 1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
@@ -41,6 +41,9 @@ importers:
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.18
+      i18next:
+        specifier: 26.3.6
+        version: 26.3.6(typescript@5.9.3)
       jsdom:
         specifier: ^26.0.0
         version: 26.1.0
@@ -53,6 +56,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.2.8(react@19.2.8)
+      react-i18next:
+        specifier: 15.7.3
+        version: 15.7.3(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -2174,8 +2180,8 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
-  i18next@26.4.1:
-    resolution: {integrity: sha512-9YbX5E6gd1H+yaOSX3izCsPj5iWXyH7X4oC+iuHHJJw8AeHglzOK5SJf+1CHxaYKYigcea+8jvzSxqYx46YvyA==}
+  i18next@26.3.6:
+    resolution: {integrity: sha512-Bu5Z2nAXgfVyM8xvW3jk9EKRIuX37PudsrBViThNFx7CR7aaYTpP01cxNB/E4c4UUzTDiAZRstEhsRfPOL/8xA==}
     peerDependencies:
       typescript: ^5 || ^6 || ^7
     peerDependenciesMeta:
@@ -2761,6 +2767,22 @@ packages:
     resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
     peerDependencies:
       react: ^19.2.8
+
+  react-i18next@15.7.3:
+    resolution: {integrity: sha512-AANws4tOE+QSq/IeMF/ncoHlMNZaVLxpa5uUGW1wjike68elVYr0018L9xYoqBr1OFO7G7boDPrbn0HpMCJxTw==}
+    peerDependencies:
+      i18next: '>= 25.4.1'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
 
   react-i18next@15.7.4:
     resolution: {integrity: sha512-nyU8iKNrI5uDJch0z9+Y5XEr34b0wkyYj3Rp+tfbahxtlswxSCjcUL9H0nqXo9IR3/t5Y5PKIA3fx3MfUyR9Xw==}
@@ -4135,13 +4157,13 @@ snapshots:
     dependencies:
       playwright: 1.62.1
 
-  '@plone/blocks@1.0.0-alpha.11(@svgr/core@8.1.0(typescript@5.9.3))(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))':
+  '@plone/blocks@1.0.0-alpha.11(@svgr/core@8.1.0(typescript@5.9.3))(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))':
     dependencies:
       '@plone/components': 5.0.0-alpha.1(@svgr/core@8.1.0(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/registry': 4.0.0-alpha.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       clsx: 2.1.1
       react: 19.2.8
-      react-i18next: 15.7.4(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      react-i18next: 15.7.4(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
     optionalDependencies:
       react-dom: 19.2.8(react@19.2.8)
     transitivePeerDependencies:
@@ -4165,15 +4187,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@plone/cmsui@1.0.0-alpha.4(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.4.1(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))':
+  '@plone/cmsui@1.0.0-alpha.4(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.3.6(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))':
     dependencies:
       '@platejs/floating': 49.0.0(platejs@49.2.21(@types/react@19.2.18)(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(scheduler@0.27.0)(use-sync-external-store@1.6.0(react@19.2.8)))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@platejs/link': 49.1.1(platejs@49.2.21(@types/react@19.2.18)(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(scheduler@0.27.0)(use-sync-external-store@1.6.0(react@19.2.8)))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@plone/blocks': 1.0.0-alpha.11(@svgr/core@8.1.0(typescript@5.9.3))(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
+      '@plone/blocks': 1.0.0-alpha.11(@svgr/core@8.1.0(typescript@5.9.3))(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/client': 2.0.0-alpha.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@plone/components': 5.0.0-alpha.1(@svgr/core@8.1.0(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/helpers': 2.0.0-alpha.7(@babel/core@7.29.7)(@babel/template@7.29.7)(@plone/registry@4.0.0-alpha.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@plone/layout': 1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.4.1(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
+      '@plone/layout': 1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.3.6(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/plate': 1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/react-router': 2.0.0-alpha.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@plone/registry': 4.0.0-alpha.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -4189,7 +4211,7 @@ snapshots:
       react: 19.2.8
       react-aria: 3.52.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react-aria-components: 1.21.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react-i18next: 15.7.4(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      react-i18next: 15.7.4(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       react-router: 7.14.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       rrule: 2.8.1
       tailwind-merge: 3.6.0
@@ -4260,7 +4282,7 @@ snapshots:
       - '@babel/template'
       - '@types/react'
 
-  '@plone/layout@1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.4.1(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))':
+  '@plone/layout@1.0.0-alpha.9(@babel/core@7.29.7)(@babel/template@7.29.7)(@emoji-mart/data@1.2.1)(@playwright/test@1.62.1)(@svgr/core@8.1.0(typescript@5.9.3))(@types/node@26.4.0)(@types/react@19.2.18)(i18next@26.3.6(typescript@5.9.3))(immer@10.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(scheduler@0.27.0)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.8))(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))':
     dependencies:
       '@plone/components': 5.0.0-alpha.1(@svgr/core@8.1.0(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rollup@4.63.1)(typescript@5.9.3)(vite@7.3.6(@types/node@26.4.0)(jiti@1.21.7)(yaml@2.9.0))
       '@plone/helpers': 2.0.0-alpha.7(@babel/core@7.29.7)(@babel/template@7.29.7)(@plone/registry@4.0.0-alpha.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -4272,7 +4294,7 @@ snapshots:
       react: 19.2.8
       react-aria: 3.52.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react-aria-components: 1.21.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react-i18next: 15.7.4(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      react-i18next: 15.7.4(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       react-router: 7.14.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       rrule: 2.8.1
     optionalDependencies:
@@ -5739,7 +5761,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  i18next@26.4.1(typescript@5.9.3):
+  i18next@26.3.6(typescript@5.9.3):
     optionalDependencies:
       typescript: 5.9.3
 
@@ -6575,11 +6597,21 @@ snapshots:
       react: 19.2.8
       scheduler: 0.27.0
 
-  react-i18next@15.7.4(i18next@26.4.1(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3):
+  react-i18next@15.7.3(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3):
     dependencies:
       '@babel/runtime': 7.29.7
       html-parse-stringify: 3.1.0
-      i18next: 26.4.1(typescript@5.9.3)
+      i18next: 26.3.6(typescript@5.9.3)
+      react: 19.2.8
+    optionalDependencies:
+      react-dom: 19.2.8(react@19.2.8)
+      typescript: 5.9.3
+
+  react-i18next@15.7.4(i18next@26.3.6(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      html-parse-stringify: 3.1.0
+      i18next: 26.3.6(typescript@5.9.3)
       react: 19.2.8
     optionalDependencies:
       react-dom: 19.2.8(react@19.2.8)

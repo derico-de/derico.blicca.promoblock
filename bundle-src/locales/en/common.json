@@ -1,0 +1,11 @@
+{
+  "promoblock": {
+    "placement": {
+      "title": "Image placement",
+      "center": "Image on top",
+      "left": "Image left",
+      "right": "Image right",
+      "below": "Image below"
+    }
+  }
+}

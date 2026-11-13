@@ -262,6 +262,8 @@ class TestEffectiveAlign:
             ({"align": "left", "image_url": "/p"}, "left"),
             ({"align": "right", "image_url": "/p"}, "right"),
             ({"align": "center", "image_url": "/p"}, "center"),
+            ({"align": "below", "image_url": "/p"}, "below"),
+            ({"align": "below"}, "center"),
             ({"align": "top", "image_url": "/p"}, "center"),
             ({"align": 42, "image_url": "/p"}, "center"),
             ({"image_url": "/p"}, "center"),

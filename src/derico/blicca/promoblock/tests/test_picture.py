@@ -27,6 +27,8 @@ def _site(integration):
         ({"blockWidth": "layout"}, "left", STOCK, "large"),
         ({"blockWidth": "layout"}, "center", STOCK, "large"),
         ({"blockWidth": "layout"}, "center", WITH_FULLWIDTH, "fullwidth"),
+        ({"blockWidth": "layout"}, "below", WITH_FULLWIDTH, "fullwidth"),
+        ({"blockWidth": "narrow"}, "below", STOCK, "large"),
         ({"blockWidth": "full"}, "left", WITH_FULLWIDTH, "fullwidth"),
     ],
 )
@@ -40,6 +42,12 @@ def test_no_usable_variant_means_no_ladder():
 
 def test_an_unknown_block_width_reads_as_default():
     assert picture.sizes({"blockWidth": "huge"}, "center") == ("(min-width: 940px) 940px, 100vw")
+
+
+def test_an_image_below_gets_the_stacked_sizes():
+    assert picture.sizes({"blockWidth": "layout"}, "below") == picture.sizes(
+        {"blockWidth": "layout"}, "center"
+    )
 
 
 def test_a_full_width_side_image_is_half_the_viewport():

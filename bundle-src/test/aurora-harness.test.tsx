@@ -438,6 +438,7 @@ describe('bundle hygiene', () => {
     'platejs',
     '@plone/registry',
     '@plone/helpers',
+    'react-i18next',
   ];
 
   it('imports only promised modules — anything else means two Reacts', () => {
@@ -452,7 +453,7 @@ describe('bundle hygiene', () => {
       ),
     ].sort();
     expect(imported).toEqual(
-      ['@plone/helpers', '@plone/registry', 'react', 'react/jsx-runtime'],
+      ['@plone/helpers', '@plone/registry', 'react', 'react-i18next', 'react/jsx-runtime'],
     );
     for (const specifier of imported) expect(PROMISED).toContain(specifier);
   });

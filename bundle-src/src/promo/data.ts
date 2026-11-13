@@ -52,8 +52,11 @@ export const DEFAULT_VARIANT = 'button';
 /** Ticket 03 Q5 / ticket 17 rule 1: no usable placement means "above the copy". */
 export const DEFAULT_ALIGN = 'center';
 
-/** What the `align` widget can produce; anything else is not a placement. */
-export const ALIGNMENTS = ['left', 'right', 'center'] as const;
+/**
+ * What the placement picker can produce, in its order; anything else is not a
+ * placement. `center` is "image on top", the stored spelling since 1.0.0a1.
+ */
+export const ALIGNMENTS = ['center', 'left', 'right', 'below'] as const;
 export type Alignment = (typeof ALIGNMENTS)[number];
 
 /** The scale the canvas previews a picked image at. Preview only — the

@@ -1,11 +1,12 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import config from "@plone/registry";
 import { getStyleFieldDefinitionsFromRegistry } from "@plone/helpers";
+import { getI18n } from "react-i18next";
 import { useId, useRef, useState, useCallback, createElement } from "react";
 const CTA_SLOTS$1 = ["primary", "secondary"];
 const DEFAULT_VARIANT = "button";
 const DEFAULT_ALIGN = "center";
-const ALIGNMENTS = ["left", "right", "center"];
+const ALIGNMENTS = ["center", "left", "right", "below"];
 const PREVIEW_SCALE = "@@images/image/large";
 const RESOLVEUID = /(?:^|\/)resolveuid\/([^/?#]+)/;
 function text(value) {
@@ -179,6 +180,75 @@ function PromoIcon(props) {
     }
   );
 }
+const promoblock$1 = { "placement": { "title": "Bildposition", "center": "Bild oben", "left": "Bild links", "right": "Bild rechts", "below": "Bild unten" } };
+const de = {
+  promoblock: promoblock$1
+};
+const promoblock = { "placement": { "title": "Image placement", "center": "Image on top", "left": "Image left", "right": "Image right", "below": "Image below" } };
+const en = {
+  promoblock
+};
+const locales = { de, en };
+function english(key) {
+  const found = key.split(".").reduce((node, part) => node?.[part], en);
+  return typeof found === "string" ? found : key;
+}
+function translate(key) {
+  const fallback = english(key);
+  return getI18n()?.t(key, { defaultValue: fallback }) ?? fallback;
+}
+function placementIcon(paths, name) {
+  function PlacementIcon({ size, className, ...rest }) {
+    const classes = ["q", "icon", size && `icon-${size}`, className].filter(Boolean);
+    return /* @__PURE__ */ jsx(
+      "svg",
+      {
+        xmlns: "http://www.w3.org/2000/svg",
+        width: "24",
+        height: "24",
+        viewBox: "0 0 24 24",
+        fill: "currentColor",
+        role: "img",
+        focusable: "false",
+        className: classes.join(" "),
+        ...rest,
+        children: paths.map((d) => /* @__PURE__ */ jsx("path", { fillRule: "evenodd", clipRule: "evenodd", d }, d))
+      }
+    );
+  }
+  PlacementIcon.displayName = name;
+  return PlacementIcon;
+}
+const FRAME_TOP = "M5 2V12H19V2H5ZM17 4H7V10H17V4Z";
+const FRAME_BOTTOM = "M5 12V22H19V12H5ZM17 14H7V20H17V14Z";
+const ImageTopIcon = placementIcon(
+  [FRAME_TOP, "M2 14H22V16H2V14Z", "M2 18H22V20H2V18Z"],
+  "ImageTopIcon"
+);
+const ImageLeftIcon = placementIcon(
+  [
+    "M2 5V15H14V5H2ZM12 7H4V13H12V7Z",
+    "M22 17V19H2V17H22Z",
+    "M22 5H16V7H22V5Z",
+    "M16 9H22V11H16V9Z",
+    "M22 13H16V15H22V13Z"
+  ],
+  "ImageLeftIcon"
+);
+const ImageRightIcon = placementIcon(
+  [
+    "M10 5V15H22V5H10ZM20 7H12V13H20V7Z",
+    "M22 17V19H2V17H22Z",
+    "M8 5H2V7H8V5Z",
+    "M2 9H8V11H2V9Z",
+    "M8 13H2V15H8V13Z"
+  ],
+  "ImageRightIcon"
+);
+const ImageBelowIcon = placementIcon(
+  ["M2 4H22V6H2V4Z", "M2 8H22V10H2V8Z", FRAME_BOTTOM],
+  "ImageBelowIcon"
+);
 const PROMO_BLOCK_TYPE = "promo";
 const BACKGROUND_FIELD_NAME = "backgroundColor";
 const CTA_SLOTS = ["primary", "secondary"];
@@ -200,6 +270,26 @@ function backgroundField(data) {
     choices,
     ...choices.some(([name]) => name === "none") ? { default: "none" } : {},
     styleField: true
+  };
+}
+const PLACEMENT_ICONS = {
+  center: ImageTopIcon,
+  left: ImageLeftIcon,
+  right: ImageRightIcon,
+  below: ImageBelowIcon
+};
+function placementField() {
+  return {
+    title: translate("promoblock.placement.title"),
+    widget: "align",
+    actions: [...ALIGNMENTS],
+    actionsInfoMap: Object.fromEntries(
+      ALIGNMENTS.map((value) => [
+        value,
+        [PLACEMENT_ICONS[value], translate(`promoblock.placement.${value}`)]
+      ])
+    ),
+    default: "center"
   };
 }
 function ctaProperties(slot) {
@@ -297,13 +387,7 @@ function PromoSchema({
       // A plain data field, not a style field (mirroring Aurora's image block),
       // so no plugin emits its modifier class — both renderers emit
       // `has--align--<value>` themselves. `center` means image ABOVE the copy.
-      align: {
-        title: "Image placement",
-        description: "Where the picture sits. “Center” places it above the text.",
-        widget: "align",
-        actions: ["left", "right", "center"],
-        default: "center"
-      },
+      align: placementField(),
       ...ctaProperties("primary"),
       ...ctaProperties("secondary"),
       // The Promo's own target, offered only while both action labels are empty.
@@ -548,6 +632,7 @@ export {
   PromoIcon,
   PromoSchema,
   PromoView,
-  install as default
+  install as default,
+  locales
 };
 //# sourceMappingURL=promo-block.js.map

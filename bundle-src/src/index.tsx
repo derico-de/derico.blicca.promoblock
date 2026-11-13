@@ -54,3 +54,5 @@ export default function install(config: any) {
 }
 
 export { PROMO_BLOCK_TYPE, PromoEdit, PromoIcon, PromoSchema, PromoView };
+// The editor merges these into its catalog (auroraeditor's contract §1.14).
+export { locales } from './i18n';

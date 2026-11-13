@@ -102,17 +102,29 @@
  * `has--align--<value>` is emitted ALWAYS and carries the EFFECTIVE placement
  * (ticket 17 rule 1), so there is one selector family here and no
  * image-presence class anywhere. An image-less promo always resolves to
- * `center`, which is why `left` / `right` can assume two children.
+ * `center`, which is why `left`, `right` and `below` can assume two children.
+ * `center` is "image on top", its stored spelling since 1.0.0a1.
  */
 
-.promo.has--align--center {
+.promo.has--align--center,
+.promo.has--align--below {
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* Both renderers write the picture first, so only the sheet puts it below. */
+.promo.has--align--below > .promo-copy {
+  grid-row: 1;
+}
+
+.promo.has--align--below > .promo-image {
+  grid-row: 2;
 }
 
 /* Centring the copy is part of the placement switch, not a seam axis — the
  * switch is a deliberate non-property (ticket 04): wanting a different one
  * means wanting a different block. */
-.promo.has--align--center > .promo-copy {
+.promo.has--align--center > .promo-copy,
+.promo.has--align--below > .promo-copy {
   margin-inline: auto;
   text-align: center;
 }
@@ -280,7 +292,8 @@
   gap: var(--promo-flow, 0.75rem);
 }
 
-.promo.has--align--center .promo-actions {
+.promo.has--align--center .promo-actions,
+.promo.has--align--below .promo-actions {
   justify-content: center;
 }
 

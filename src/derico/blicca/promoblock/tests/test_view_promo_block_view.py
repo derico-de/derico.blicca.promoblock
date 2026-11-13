@@ -295,6 +295,7 @@ class TestTheTableRestated(PromoViewTestCase):
             ({"image_url": "/p", "align": "left"}, "left"),
             ({"image_url": "/p", "align": "right"}, "right"),
             ({"image_url": "/p", "align": "center"}, "center"),
+            ({"image_url": "/p", "align": "below"}, "below"),
             ({"image_url": "/p", "align": "top"}, "center"),
         ],
     )

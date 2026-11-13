@@ -35,8 +35,9 @@ DEFAULT_VARIANT = "button"
 #: Ticket 03 Q5 / ticket 17 rule 1: no usable placement means "above the copy".
 DEFAULT_ALIGN = "center"
 
-#: What the ``align`` widget can produce; anything else is not a placement.
-ALIGNMENTS = ("left", "right", "center")
+#: What the placement picker can produce, in its order; anything else is not a
+#: placement. ``center`` is "image on top", the stored spelling since 1.0.0a1.
+ALIGNMENTS = ("center", "left", "right", "below")
 
 #: The schemes a **link** may carry. An allowlist, not a blocklist: ticket 03
 #: Q1 made all three link fields author-typed free text, and a blocklist fails

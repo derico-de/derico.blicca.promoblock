@@ -202,6 +202,8 @@ describe('the root', () => {
       [{ ...SERVED, align: 'left' }, 'left'],
       [{ ...SERVED, align: 'right' }, 'right'],
       [{ ...SERVED, align: 'center' }, 'center'],
+      [{ ...SERVED, align: 'below' }, 'below'],
+      [{ align: 'below' }, 'center'],
     ] as Array<[PromoData, string]>) {
       expect(promo(data).classList.contains(`has--align--${expected}`)).toBe(true);
       expect([...promo(data).classList].filter((name) => name.startsWith('has--align--'))).toHaveLength(1);

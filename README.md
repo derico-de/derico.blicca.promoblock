@@ -23,9 +23,10 @@ frontend can use directly, see
 - **Authored content.** Kicker, title, description, image, two actions and a
   card link, all written in the sidebar. Nothing is required, so a
   half-finished promo can be saved and published.
-- **Image left, right or above.** With an image, the card is two columns with
-  the image on the chosen side. Without one, or below a width of 34rem, the
-  card stacks and centres.
+- **Image on top, left, right or below.** An icon row in the sidebar picks
+  the placement. Left and right make two columns with the image on that
+  side; on top and below stack the card and centre the copy. Without an
+  image, or below a width of 34rem, the card stacks with the image on top.
 - **Two actions, each a button or a link.** Each action has a label, a link
   and a style. Links can be site content picked from the browser, or a typed
   URL, `mailto:` or `tel:` address.
@@ -48,7 +49,7 @@ frontend can use directly, see
 ## Requirements
 
 - Plone 6.0 or later
-- `plone.blicca.auroraeditor` 1.0.0a4 or later
+- `plone.blicca.auroraeditor` 1.0.0a6 or later
 
 The JavaScript bundle is committed to the package. No Node is needed at
 install time.
@@ -81,7 +82,7 @@ canvas is a live preview; all editing happens in the sidebar.
 | Title | The headline, rendered as an `h2` |
 | Description | Plain text below the title |
 | Image | Pick or upload a picture. The editor's image widget is used, so it looks the same as in every other block |
-| Image placement | Left, right or center. Shown only once an image is set. Center puts the picture above the text |
+| Image placement | Image on top, left, right or below, picked from an icon row. Shown only once an image is set |
 
 **Actions fieldset**
 
@@ -136,8 +137,10 @@ empty, so an empty promo is one `<div>`.
 ```
 
 - The root `div.promo` always carries `has--align--<value>` with the
-  placement that is actually in effect: `center` whenever there is no image,
-  whatever was stored.
+  placement that is actually in effect: `center` (image on top), `left`,
+  `right` or `below`, and `center` whenever there is no image, whatever was
+  stored. With `below` the picture still comes first in the markup; the
+  stylesheet moves it under the copy.
 - The public page carries the responsive attributes on the `<img>` and,
   when the host supplies AVIF, one AVIF `<source>` in front of it. The React
   renderer emits the same elements and classes with a plain `<img>`.
