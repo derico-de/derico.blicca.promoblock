@@ -27,6 +27,8 @@ frontend can use directly, see
   the placement. Left and right make two columns with the image on that
   side; on top and below stack the card and centre the copy. Without an
   image, or below a width of 34rem, the card stacks with the image on top.
+- **Sticky text column.** Beside the image, the text can stay in view while
+  a taller image scrolls past.
 - **Two actions, each a button or a link.** Each action has a label, a link
   and a style. Links can be site content picked from the browser, or a typed
   URL, `mailto:` or `tel:` address.
@@ -42,7 +44,7 @@ frontend can use directly, see
   action with a label but no link.
 - **One markup, one stylesheet** for the public page, the editor canvas and
   an Aurora frontend.
-- **Themeable** through nineteen `--promo-*` CSS custom properties.
+- **Themeable** through twenty `--promo-*` CSS custom properties.
 - **Block width and background colour** come from the editor's regular block
   styling controls.
 
@@ -83,6 +85,7 @@ canvas is a live preview; all editing happens in the sidebar.
 | Description | Plain text below the title |
 | Image | Pick or upload a picture. The editor's image widget is used, so it looks the same as in every other block |
 | Image placement | Image on top, left, right or below, picked from an icon row. Shown only once an image is set |
+| Sticky text column | Keeps the text in view while the image scrolls past. Shown only with the image left or right |
 
 **Actions fieldset**
 
@@ -141,6 +144,8 @@ empty, so an empty promo is one `<div>`.
   `right` or `below`, and `center` whenever there is no image, whatever was
   stored. With `below` the picture still comes first in the markup; the
   stylesheet moves it under the copy.
+- With a sticky text column in effect (image left or right), the root also
+  carries `is--sticky-copy`.
 - The public page carries the responsive attributes on the `<img>` and,
   when the host supplies AVIF, one AVIF `<source>` in front of it. The React
   renderer emits the same elements and classes with a plain `<img>`.
@@ -224,6 +229,7 @@ example `--promo-title-size: var(--plone-text-2xl)`.
 | `--promo-image-width` | `1fr` | the image's grid track at `left` / `right` |
 | `--promo-image-ratio` | `auto` | `aspect-ratio` of the image box |
 | `--promo-image-radius` | `0` | corner radius of the image |
+| `--promo-sticky-top` | `1rem` | distance from the top of the viewport for a sticky text column, e.g. below a sticky header |
 | `--promo-kicker-size` | `0.875rem` | kicker font size |
 | `--promo-kicker-color` | `currentColor` | kicker colour |
 | `--promo-title-size` | `1.75rem` | title font size |

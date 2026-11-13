@@ -2,7 +2,7 @@
  * The README ↔ stylesheet lockstep.
  *
  * This test is LOAD-BEARING, not hygiene. Ticket 04 and ADR 0002 put the
- * block's nineteen seam defaults at their POINT OF USE — every axis is spelled
+ * block's twenty seam defaults at their POINT OF USE — every axis is spelled
  * `var(--promo-x, <literal>)` and the sheet declares no `--promo-*` property
  * anywhere — so there is no single place in the code that states what a default
  * is. The README's property table is that place, and it is published: ticket
@@ -116,7 +116,7 @@ describe('the seam is what the README says it is', () => {
   // parse, and both parsers are hand-written — so prove they found something
   // before trusting what they did not find.
   it('parses the published table', () => {
-    expect(documented.size).toBe(19);
+    expect(documented.size).toBe(20);
     expect(documented.get('--promo-gap')).toBe('2rem');
     expect(documented.get('--promo-cta-hover-bg')).toBe(
       'color-mix(in oklab, var(--promo-cta-bg, CanvasText) 88%, var(--promo-cta-fg, Canvas))',

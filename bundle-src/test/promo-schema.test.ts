@@ -3,7 +3,7 @@
  *
  * The two assertions that matter most are not about any single field:
  *
- *  1. **Exactly one conditional field per fieldset, and it is LAST.**
+ *  1. **Conditional fields only ever form a fieldset's TAIL.**
  *     `BlockSettingsFormRenderer` keys fields by array index and the schema
  *     recomputes on every keystroke, so a conditional field vanishing from
  *     the middle of a fieldset makes React reuse one field's DOM node for
@@ -48,6 +48,11 @@ const STATES = [
     name: 'with both',
     formData: { image: '../resolveuid/abc', cta_primary_label: 'Los' },
   },
+  {
+    name: 'with the image beside the copy',
+    formData: { image: '../resolveuid/abc', align: 'right' },
+  },
+  { name: 'with a placement but no image', formData: { align: 'left' } },
 ] as const;
 
 describe('the signature', () => {
@@ -89,6 +94,25 @@ describe('the fieldsets', () => {
     expect(fields.at(-1)).toBe('align');
   });
 
+  it('put `sticky_copy` after `align`, and only with the image left or right', () => {
+    for (const align of ['left', 'right']) {
+      const fields = fieldsOf(PromoSchema({ formData: { image: '/pic', align } }), 'default');
+      expect(fields.slice(-2)).toEqual(['align', 'sticky_copy']);
+    }
+    for (const formData of [
+      { image: '/pic' },
+      { image: '/pic', align: 'center' },
+      { image: '/pic', align: 'below' },
+      { align: 'left' },
+    ]) {
+      expect(fieldsOf(PromoSchema({ formData }), 'default')).not.toContain('sticky_copy');
+    }
+  });
+
+  it('make `sticky_copy` a host checkbox', () => {
+    expect((PromoSchema().properties as Record<string, any>).sticky_copy.type).toBe('boolean');
+  });
+
   it('put `card_link` last in Actions, and only while both labels are empty', () => {
     expect(fieldsOf(PromoSchema(), 'actions').at(-1)).toBe('card_link');
     for (const field of ['cta_primary_label', 'cta_secondary_label']) {
@@ -118,7 +142,7 @@ describe('the fieldsets', () => {
   });
 });
 
-describe('THE INVARIANT: one conditional field per fieldset, and it is last', () => {
+describe('THE INVARIANT: conditional fields only ever form the tail', () => {
   // Read off the states rather than declared: whatever varies IS the
   // conditional set, so adding a conditional field anywhere is caught.
   const listsFor = (id: string) => STATES.map((state) => fieldsOf(PromoSchema(state), id));
@@ -127,14 +151,10 @@ describe('THE INVARIANT: one conditional field per fieldset, and it is last', ()
     it(`holds for the ${id} fieldset`, () => {
       const lists = listsFor(id);
       const longest = lists.reduce((a, b) => (b.length > a.length ? b : a));
-      const shortest = lists.reduce((a, b) => (b.length < a.length ? b : a));
 
-      // At most one field ever varies…
-      expect(longest.length - shortest.length).toBeLessThanOrEqual(1);
-      // …and the shorter list is the longer one with its TAIL removed, which
-      // is what "conditional and last" means mechanically. Any inward
-      // conditional makes this a mismatch instead.
-      expect(longest.slice(0, shortest.length)).toEqual(shortest);
+      // Every list is the longest with its TAIL removed, which is what
+      // "conditional and last" means mechanically. Any inward conditional
+      // makes this a mismatch instead.
       for (const list of lists) {
         expect(longest.slice(0, list.length)).toEqual(list);
       }

@@ -18,7 +18,7 @@
  *    `docs/adr/0002-seam-defaults-live-at-their-point-of-use.md`. A property
  *    declared on `.promo` would SHADOW a theme's inherited `:root` value and
  *    force exactly the specificity escalation the seam exists to prevent.
- *    Hoisting the nineteen scattered literals into one tidy declaration block
+ *    Hoisting the twenty scattered literals into one tidy declaration block
  *    is the obvious cleanup, and it is the mistake the ADR exists to stop.
  * 2. THE DEFAULTS ARE PUBLISHED. Ticket 04's growth policy makes CHANGING a
  *    default a breaking change, so the property table in `README.md` is the
@@ -167,6 +167,27 @@
   .promo.has--align--right > .promo-copy {
     grid-column: 1 / -1;
     grid-row: auto;
+  }
+}
+
+/* ── the sticky text column ─────────────────────────────────────────────
+ *
+ * Both renderers emit `is--sticky-copy` only with `left` or `right`, so the
+ * copy is always a column beside the picture here. It starts at the top of
+ * its row rather than the middle, then stays in view while a taller picture
+ * scrolls past. Sticky needs every ancestor up to the scroller to keep
+ * `overflow: visible`; that is the host's to hold. Stacked, nothing sticks.
+ */
+
+.promo.is--sticky-copy > .promo-copy {
+  position: sticky;
+  top: var(--promo-sticky-top, 1rem);
+  align-self: start;
+}
+
+@container promo (max-width: 34rem) {
+  .promo.is--sticky-copy > .promo-copy {
+    position: static;
   }
 }
 

@@ -199,6 +199,7 @@ describe('every promo field resolves to the widget it was designed for', () => {
     description: 'default',
     image: 'ours',
     align: 'upstream',
+    sticky_copy: 'upstream',
     cta_primary_label: 'default',
     cta_primary_link: 'ours',
     cta_primary_variant: 'ours',

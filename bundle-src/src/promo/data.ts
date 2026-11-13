@@ -15,6 +15,7 @@
  * fallbacks themselves.
  */
 import config from '@plone/registry';
+import { translate } from '../i18n';
 
 /** Everything the two renderers read. `unknown`, because nothing is required. */
 export type PromoData = {
@@ -23,6 +24,7 @@ export type PromoData = {
   description?: unknown;
   image?: unknown;
   align?: unknown;
+  sticky_copy?: unknown;
   card_link?: unknown;
   cta_primary_label?: unknown;
   cta_primary_link?: unknown;
@@ -58,6 +60,9 @@ export const DEFAULT_ALIGN = 'center';
  */
 export const ALIGNMENTS = ['center', 'left', 'right', 'below'] as const;
 export type Alignment = (typeof ALIGNMENTS)[number];
+
+/** The placements that put the copy in a column beside the picture. */
+export const SIDE_BY_SIDE = ['left', 'right'] as const;
 
 /** The scale the canvas previews a picked image at. Preview only — the
  *  public page's resolution ladder is the server half's (ticket 09). */
@@ -305,6 +310,14 @@ export function effectiveAlign(data: PromoData): Alignment {
   return ALIGNMENTS.includes(stored) ? stored : DEFAULT_ALIGN;
 }
 
+/** Does the copy column stick while the picture scrolls past? Only beside it. */
+export function stickyCopy(data: PromoData): boolean {
+  return (
+    data.sticky_copy === true &&
+    (SIDE_BY_SIDE as readonly string[]).includes(effectiveAlign(data))
+  );
+}
+
 /* ── editor honesty ─────────────────────────────────────────────────────── */
 
 /**
@@ -376,6 +389,9 @@ export function warnings(data: PromoData): string[] {
   }
   if (text(data.align) && !hasImage(data)) {
     notes.push('The image placement is ignored: there is no image to place.');
+  }
+  if (data.sticky_copy === true && !stickyCopy(data)) {
+    notes.push(translate('promoblock.sticky_copy.ignored'));
   }
   return notes;
 }

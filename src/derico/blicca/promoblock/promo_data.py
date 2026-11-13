@@ -39,6 +39,9 @@ DEFAULT_ALIGN = "center"
 #: placement. ``center`` is "image on top", the stored spelling since 1.0.0a1.
 ALIGNMENTS = ("center", "left", "right", "below")
 
+#: The placements that put the copy in a column beside the picture.
+SIDE_BY_SIDE = ("left", "right")
+
 #: The schemes a **link** may carry. An allowlist, not a blocklist: ticket 03
 #: Q1 made all three link fields author-typed free text, and a blocklist fails
 #: open on the scheme nobody thought of.
@@ -182,3 +185,8 @@ def effective_align(data):
         return DEFAULT_ALIGN
     stored = text((data or {}).get("align"))
     return stored if stored in ALIGNMENTS else DEFAULT_ALIGN
+
+
+def sticky_copy(data):
+    """Does the copy column stick while the picture scrolls past? Only beside it."""
+    return (data or {}).get("sticky_copy") is True and effective_align(data) in SIDE_BY_SIDE
