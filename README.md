@@ -85,8 +85,6 @@ canvas is a live preview; all editing happens in the sidebar.
 | Title | The headline, rendered as an `h2` |
 | Description | Plain text below the title |
 | Image | Pick or upload a picture. The editor's image widget is used, so it looks the same as in every other block |
-| Image placement | Image on top, left, right or below, picked from an icon row. Shown only once an image is set |
-| Text style | Sticky, top, middle or bottom, picked from an icon row: where the text sits beside the image. Sticky keeps it in view while the image scrolls past. Shown only with the image left or right |
 
 **Actions fieldset**
 
@@ -96,8 +94,14 @@ canvas is a live preview; all editing happens in the sidebar.
 | Secondary action label, link, style | The second one, same shape |
 | Card link | Makes the whole card clickable. Shown only while both action labels are empty |
 
-**Styling fieldset**: block width, and a background colour if the site
-offers a palette.
+**Styling fieldset**
+
+| Field | What it does |
+|---|---|
+| Block width | The editor's regular width picker |
+| Background | A background colour, only if the site offers a palette |
+| Image placement | Image on top, left, right or below, picked from an icon row. Shown only once an image is set |
+| Text style | Sticky, top, middle or bottom, picked from an icon row: where the text sits beside the image. Sticky keeps it in view while the image scrolls past. Shown only with the image left or right |
 
 Rules worth knowing:
 
