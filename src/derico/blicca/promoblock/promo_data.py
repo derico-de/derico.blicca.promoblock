@@ -42,6 +42,11 @@ ALIGNMENTS = ("center", "left", "right", "below")
 #: The placements that put the copy in a column beside the picture.
 SIDE_BY_SIDE = ("left", "right")
 
+#: Where the copy column sits beside the picture, in the picker's order.
+#: ``middle`` is the default and emits no class.
+COPY_POSITIONS = ("sticky", "top", "middle", "bottom")
+DEFAULT_COPY_POSITION = "middle"
+
 #: The schemes a **link** may carry. An allowlist, not a blocklist: ticket 03
 #: Q1 made all three link fields author-typed free text, and a blocklist fails
 #: open on the scheme nobody thought of.
@@ -187,6 +192,9 @@ def effective_align(data):
     return stored if stored in ALIGNMENTS else DEFAULT_ALIGN
 
 
-def sticky_copy(data):
-    """Does the copy column stick while the picture scrolls past? Only beside it."""
-    return (data or {}).get("sticky_copy") is True and effective_align(data) in SIDE_BY_SIDE
+def copy_position(data):
+    """The copy column's effective position; ``middle`` unless beside the picture."""
+    stored = text((data or {}).get("copy_position"))
+    if effective_align(data) not in SIDE_BY_SIDE or stored not in COPY_POSITIONS:
+        return DEFAULT_COPY_POSITION
+    return stored

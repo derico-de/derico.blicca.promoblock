@@ -170,23 +170,32 @@
   }
 }
 
-/* ── the sticky text column ─────────────────────────────────────────────
+/* ── the text style ─────────────────────────────────────────────────────
  *
- * Both renderers emit `is--sticky-copy` only with `left` or `right`, so the
- * copy is always a column beside the picture here. It starts at the top of
- * its row rather than the middle, then stays in view while a taller picture
- * scrolls past. Sticky needs every ancestor up to the scroller to keep
- * `overflow: visible`; that is the host's to hold. Stacked, nothing sticks.
+ * Beside the picture the copy sits in the middle of its row (`align-items`
+ * above). Both renderers emit `has--copy--<value>` only for `sticky`, `top`
+ * or `bottom`, and only with `left` or `right`. `sticky` starts at the top,
+ * then stays in view while a taller picture scrolls past. Sticky needs every
+ * ancestor up to the scroller to keep `overflow: visible`; that is the
+ * host's to hold. Stacked, nothing sticks.
  */
 
-.promo.is--sticky-copy > .promo-copy {
-  position: sticky;
-  top: var(--promo-sticky-top, 1rem);
+.promo.has--copy--sticky > .promo-copy,
+.promo.has--copy--top > .promo-copy {
   align-self: start;
 }
 
+.promo.has--copy--bottom > .promo-copy {
+  align-self: end;
+}
+
+.promo.has--copy--sticky > .promo-copy {
+  position: sticky;
+  top: var(--promo-sticky-top, 1rem);
+}
+
 @container promo (max-width: 34rem) {
-  .promo.is--sticky-copy > .promo-copy {
+  .promo.has--copy--sticky > .promo-copy {
     position: static;
   }
 }

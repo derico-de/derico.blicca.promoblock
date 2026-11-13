@@ -3,11 +3,11 @@ import config from "@plone/registry";
 import { getI18n } from "react-i18next";
 import { getStyleFieldDefinitionsFromRegistry } from "@plone/helpers";
 import { useId, useRef, useState, useCallback, createElement } from "react";
-const promoblock$1 = { "placement": { "title": "Bildposition", "center": "Bild oben", "left": "Bild links", "right": "Bild rechts", "below": "Bild unten" }, "sticky_copy": { "title": "Textspalte fixieren", "description": "Der Text bleibt sichtbar, während das Bild vorbeiscrollt. Nur bei Bild links oder rechts.", "ignored": "Die fixierte Textspalte wird ignoriert: Das Bild steht nicht neben dem Text." } };
+const promoblock$1 = { "placement": { "title": "Bildposition", "center": "Bild oben", "left": "Bild links", "right": "Bild rechts", "below": "Bild unten" }, "copy_position": { "title": "Textstil", "sticky": "Fixiert", "top": "Oben", "middle": "Mitte", "bottom": "Unten", "ignored": "Der Textstil wird ignoriert: Das Bild steht nicht neben dem Text." } };
 const de = {
   promoblock: promoblock$1
 };
-const promoblock = { "placement": { "title": "Image placement", "center": "Image on top", "left": "Image left", "right": "Image right", "below": "Image below" }, "sticky_copy": { "title": "Sticky text column", "description": "The text stays in view while the image scrolls past. Only with the image left or right.", "ignored": "The sticky text column is ignored: the image is not beside the copy." } };
+const promoblock = { "placement": { "title": "Image placement", "center": "Image on top", "left": "Image left", "right": "Image right", "below": "Image below" }, "copy_position": { "title": "Text style", "sticky": "Sticky", "top": "Top", "middle": "Middle", "bottom": "Bottom", "ignored": "The text style is ignored: the image is not beside the copy." } };
 const en = {
   promoblock
 };
@@ -25,6 +25,8 @@ const DEFAULT_VARIANT = "button";
 const DEFAULT_ALIGN = "center";
 const ALIGNMENTS = ["center", "left", "right", "below"];
 const SIDE_BY_SIDE = ["left", "right"];
+const COPY_POSITIONS = ["sticky", "top", "middle", "bottom"];
+const DEFAULT_COPY_POSITION = "middle";
 const PREVIEW_SCALE = "@@images/image/large";
 const RESOLVEUID = /(?:^|\/)resolveuid\/([^/?#]+)/;
 function text(value) {
@@ -98,8 +100,13 @@ function effectiveAlign(data) {
   const stored = text(data.align);
   return ALIGNMENTS.includes(stored) ? stored : DEFAULT_ALIGN;
 }
-function stickyCopy(data) {
-  return data.sticky_copy === true && SIDE_BY_SIDE.includes(effectiveAlign(data));
+function besideCopy(data) {
+  return SIDE_BY_SIDE.includes(effectiveAlign(data));
+}
+function copyPosition(data) {
+  const stored = text(data.copy_position);
+  if (!besideCopy(data) || !COPY_POSITIONS.includes(stored)) return DEFAULT_COPY_POSITION;
+  return stored;
 }
 function warnings(data) {
   const notes = [];
@@ -140,8 +147,9 @@ function warnings(data) {
   if (text(data.align) && !hasImage(data)) {
     notes.push("The image placement is ignored: there is no image to place.");
   }
-  if (data.sticky_copy === true && !stickyCopy(data)) {
-    notes.push(translate("promoblock.sticky_copy.ignored"));
+  const position = text(data.copy_position);
+  if (position && position !== DEFAULT_COPY_POSITION && copyPosition(data) !== position) {
+    notes.push(translate("promoblock.copy_position.ignored"));
   }
   return notes;
 }
@@ -156,10 +164,11 @@ function PromoView({ data = {}, isEditMode }) {
   const cta = actions(data);
   const card = cardLink(data);
   const copy = kicker || title || description || cta.length > 0;
+  const position = copyPosition(data);
   const promo = /* @__PURE__ */ jsxs(
     "div",
     {
-      className: `promo has--align--${effectiveAlign(data)}${stickyCopy(data) ? " is--sticky-copy" : ""}`,
+      className: `promo has--align--${effectiveAlign(data)}${position === DEFAULT_COPY_POSITION ? "" : ` has--copy--${position}`}`,
       children: [
         image ? /* @__PURE__ */ jsx("picture", { className: "promo-image", children: /* @__PURE__ */ jsx("img", { src: image, alt: "", decoding: "async", loading: "lazy" }) }) : null,
         copy ? /* @__PURE__ */ jsxs("div", { className: "promo-copy", children: [
@@ -262,6 +271,19 @@ const ImageBelowIcon = placementIcon(
   ["M2 4H22V6H2V4Z", "M2 8H22V10H2V8Z", FRAME_BOTTOM],
   "ImageBelowIcon"
 );
+const FRAME_TALL = "M2 2V22H11V2H2ZM9 4H4V20H9V4Z";
+function copyLines(top) {
+  return [0, 4, 8].map(
+    (offset, line) => `M13 ${top + offset}H${line === 2 ? 19 : 22}V${top + offset + 2}H13Z`
+  );
+}
+const CopyStickyIcon = placementIcon(
+  [FRAME_TALL, ...copyLines(2).slice(0, 2), "M16.5 10H18.5V17H16.5Z", "M14 16H21L17.5 21Z"],
+  "CopyStickyIcon"
+);
+const CopyTopIcon = placementIcon([FRAME_TALL, ...copyLines(2)], "CopyTopIcon");
+const CopyMiddleIcon = placementIcon([FRAME_TALL, ...copyLines(7)], "CopyMiddleIcon");
+const CopyBottomIcon = placementIcon([FRAME_TALL, ...copyLines(12)], "CopyBottomIcon");
 const PROMO_BLOCK_TYPE = "promo";
 const BACKGROUND_FIELD_NAME = "backgroundColor";
 const CTA_SLOTS = ["primary", "secondary"];
@@ -305,6 +327,26 @@ function placementField() {
     default: DEFAULT_ALIGN
   };
 }
+const COPY_POSITION_ICONS = {
+  sticky: CopyStickyIcon,
+  top: CopyTopIcon,
+  middle: CopyMiddleIcon,
+  bottom: CopyBottomIcon
+};
+function copyPositionField() {
+  return {
+    title: translate("promoblock.copy_position.title"),
+    widget: "align",
+    actions: [...COPY_POSITIONS],
+    actionsInfoMap: Object.fromEntries(
+      COPY_POSITIONS.map((value) => [
+        value,
+        [COPY_POSITION_ICONS[value], translate(`promoblock.copy_position.${value}`)]
+      ])
+    ),
+    default: DEFAULT_COPY_POSITION
+  };
+}
 function ctaProperties(slot) {
   const label = slot === "primary" ? "Primary" : "Secondary";
   return {
@@ -339,7 +381,7 @@ function PromoSchema({
   formData = {}
 } = {}) {
   const hasImage2 = filled(formData.image);
-  const besideCopy = hasImage2 && SIDE_BY_SIDE.includes(text(formData.align));
+  const besideCopy2 = hasImage2 && SIDE_BY_SIDE.includes(text(formData.align));
   const hasAnyLabel2 = LABEL_FIELDS.some((field) => filled(formData[field]));
   const background = backgroundField(formData);
   return {
@@ -354,7 +396,7 @@ function PromoSchema({
           "description",
           "image",
           ...hasImage2 ? ["align"] : [],
-          ...besideCopy ? ["sticky_copy"] : []
+          ...besideCopy2 ? ["copy_position"] : []
         ]
       },
       {
@@ -405,11 +447,7 @@ function PromoSchema({
       align: placementField(),
       // Offered only beside the picture; a value set there survives hidden,
       // as `align` does without an image.
-      sticky_copy: {
-        title: translate("promoblock.sticky_copy.title"),
-        description: translate("promoblock.sticky_copy.description"),
-        type: "boolean"
-      },
+      copy_position: copyPositionField(),
       ...ctaProperties("primary"),
       ...ctaProperties("secondary"),
       // The Promo's own target, offered only while both action labels are empty.
