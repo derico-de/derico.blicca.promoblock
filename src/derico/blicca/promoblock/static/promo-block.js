@@ -289,7 +289,7 @@ function placementField() {
         [PLACEMENT_ICONS[value], translate(`promoblock.placement.${value}`)]
       ])
     ),
-    default: "center"
+    default: DEFAULT_ALIGN
   };
 }
 function ctaProperties(slot) {

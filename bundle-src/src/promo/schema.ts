@@ -32,7 +32,7 @@
  */
 import { getStyleFieldDefinitionsFromRegistry } from '@plone/helpers';
 import { translate } from '../i18n';
-import { ALIGNMENTS } from './data';
+import { ALIGNMENTS, DEFAULT_ALIGN } from './data';
 import {
   ImageBelowIcon,
   ImageLeftIcon,
@@ -108,7 +108,7 @@ function placementField() {
         [PLACEMENT_ICONS[value], translate(`promoblock.placement.${value}`)],
       ]),
     ),
-    default: 'center',
+    default: DEFAULT_ALIGN,
   };
 }
 
