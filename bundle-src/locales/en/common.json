@@ -6,6 +6,11 @@
       "left": "Image left",
       "right": "Image right",
       "below": "Image below"
+    },
+    "sticky_copy": {
+      "title": "Sticky text column",
+      "description": "The text stays in view while the image scrolls past. Only with the image left or right.",
+      "ignored": "The sticky text column is ignored: the image is not beside the copy."
     }
   }
 }

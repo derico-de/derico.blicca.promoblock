@@ -79,6 +79,7 @@ class TestScreenParity:
         assert ts_scalar("DEFAULT_VARIANT") == promo_data.DEFAULT_VARIANT
         assert ts_scalar("DEFAULT_ALIGN") == promo_data.DEFAULT_ALIGN
         assert ts_array("ALIGNMENTS") == promo_data.ALIGNMENTS
+        assert ts_array("SIDE_BY_SIDE") == promo_data.SIDE_BY_SIDE
         assert ts_array("CTA_SLOTS") == promo_data.CTA_SLOTS
 
 
@@ -281,6 +282,26 @@ class TestEffectiveAlign:
         assert data["align"] == "left"
 
 
+class TestStickyCopy:
+    """The copy column sticks only beside the picture."""
+
+    @pytest.mark.parametrize(
+        "data,expected",
+        [
+            ({"sticky_copy": True, "align": "left", "image_url": "/p"}, True),
+            ({"sticky_copy": True, "align": "right", "image_url": "/p"}, True),
+            ({"sticky_copy": True, "align": "center", "image_url": "/p"}, False),
+            ({"sticky_copy": True, "align": "below", "image_url": "/p"}, False),
+            ({"sticky_copy": True, "align": "left"}, False),
+            ({"sticky_copy": False, "align": "left", "image_url": "/p"}, False),
+            ({"sticky_copy": "true", "align": "left", "image_url": "/p"}, False),
+            ({"align": "left", "image_url": "/p"}, False),
+        ],
+    )
+    def test_only_beside_the_picture(self, data, expected):
+        assert promo_data.sticky_copy(data) is expected
+
+
 class TestReadingTolerantly:
     """Nothing is required, so nothing may throw."""
 
@@ -291,3 +312,4 @@ class TestReadingTolerantly:
         assert promo_data.image_url(data) == ""
         assert promo_data.effective_align(data) == "center"
         assert promo_data.has_any_label(data) is False
+        assert promo_data.sticky_copy(data) is False

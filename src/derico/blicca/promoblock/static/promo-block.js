@@ -1,12 +1,30 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import config from "@plone/registry";
-import { getStyleFieldDefinitionsFromRegistry } from "@plone/helpers";
 import { getI18n } from "react-i18next";
+import { getStyleFieldDefinitionsFromRegistry } from "@plone/helpers";
 import { useId, useRef, useState, useCallback, createElement } from "react";
+const promoblock$1 = { "placement": { "title": "Bildposition", "center": "Bild oben", "left": "Bild links", "right": "Bild rechts", "below": "Bild unten" }, "sticky_copy": { "title": "Textspalte fixieren", "description": "Der Text bleibt sichtbar, während das Bild vorbeiscrollt. Nur bei Bild links oder rechts.", "ignored": "Die fixierte Textspalte wird ignoriert: Das Bild steht nicht neben dem Text." } };
+const de = {
+  promoblock: promoblock$1
+};
+const promoblock = { "placement": { "title": "Image placement", "center": "Image on top", "left": "Image left", "right": "Image right", "below": "Image below" }, "sticky_copy": { "title": "Sticky text column", "description": "The text stays in view while the image scrolls past. Only with the image left or right.", "ignored": "The sticky text column is ignored: the image is not beside the copy." } };
+const en = {
+  promoblock
+};
+const locales = { de, en };
+function english(key) {
+  const found = key.split(".").reduce((node, part) => node?.[part], en);
+  return typeof found === "string" ? found : key;
+}
+function translate(key) {
+  const fallback = english(key);
+  return getI18n()?.t(key, { defaultValue: fallback }) ?? fallback;
+}
 const CTA_SLOTS$1 = ["primary", "secondary"];
 const DEFAULT_VARIANT = "button";
 const DEFAULT_ALIGN = "center";
 const ALIGNMENTS = ["center", "left", "right", "below"];
+const SIDE_BY_SIDE = ["left", "right"];
 const PREVIEW_SCALE = "@@images/image/large";
 const RESOLVEUID = /(?:^|\/)resolveuid\/([^/?#]+)/;
 function text(value) {
@@ -80,6 +98,9 @@ function effectiveAlign(data) {
   const stored = text(data.align);
   return ALIGNMENTS.includes(stored) ? stored : DEFAULT_ALIGN;
 }
+function stickyCopy(data) {
+  return data.sticky_copy === true && SIDE_BY_SIDE.includes(effectiveAlign(data));
+}
 function warnings(data) {
   const notes = [];
   const picture = storedImage(data.image);
@@ -119,6 +140,9 @@ function warnings(data) {
   if (text(data.align) && !hasImage(data)) {
     notes.push("The image placement is ignored: there is no image to place.");
   }
+  if (data.sticky_copy === true && !stickyCopy(data)) {
+    notes.push(translate("promoblock.sticky_copy.ignored"));
+  }
   return notes;
 }
 function linkProps(href, isEditMode) {
@@ -132,23 +156,29 @@ function PromoView({ data = {}, isEditMode }) {
   const cta = actions(data);
   const card = cardLink(data);
   const copy = kicker || title || description || cta.length > 0;
-  const promo = /* @__PURE__ */ jsxs("div", { className: `promo has--align--${effectiveAlign(data)}`, children: [
-    image ? /* @__PURE__ */ jsx("picture", { className: "promo-image", children: /* @__PURE__ */ jsx("img", { src: image, alt: "", decoding: "async", loading: "lazy" }) }) : null,
-    copy ? /* @__PURE__ */ jsxs("div", { className: "promo-copy", children: [
-      kicker ? /* @__PURE__ */ jsx("p", { className: "promo-kicker", children: kicker }) : null,
-      title ? /* @__PURE__ */ jsx("h2", { className: "promo-title", children: title }) : null,
-      description ? /* @__PURE__ */ jsx("p", { className: "promo-description", children: description }) : null,
-      cta.length ? /* @__PURE__ */ jsx("div", { className: "promo-actions", children: cta.map((action2) => /* @__PURE__ */ jsx(
-        "a",
-        {
-          className: `promo-cta promo-cta-${action2.variant}`,
-          ...linkProps(action2.href, isEditMode),
-          children: action2.label
-        },
-        action2.label
-      )) }) : null
-    ] }) : null
-  ] });
+  const promo = /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: `promo has--align--${effectiveAlign(data)}${stickyCopy(data) ? " is--sticky-copy" : ""}`,
+      children: [
+        image ? /* @__PURE__ */ jsx("picture", { className: "promo-image", children: /* @__PURE__ */ jsx("img", { src: image, alt: "", decoding: "async", loading: "lazy" }) }) : null,
+        copy ? /* @__PURE__ */ jsxs("div", { className: "promo-copy", children: [
+          kicker ? /* @__PURE__ */ jsx("p", { className: "promo-kicker", children: kicker }) : null,
+          title ? /* @__PURE__ */ jsx("h2", { className: "promo-title", children: title }) : null,
+          description ? /* @__PURE__ */ jsx("p", { className: "promo-description", children: description }) : null,
+          cta.length ? /* @__PURE__ */ jsx("div", { className: "promo-actions", children: cta.map((action2) => /* @__PURE__ */ jsx(
+            "a",
+            {
+              className: `promo-cta promo-cta-${action2.variant}`,
+              ...linkProps(action2.href, isEditMode),
+              children: action2.label
+            },
+            action2.label
+          )) }) : null
+        ] }) : null
+      ]
+    }
+  );
   return card ? /* @__PURE__ */ jsx("a", { className: "promo-cardlink", ...linkProps(card, isEditMode), children: promo }) : promo;
 }
 function PromoEdit(props) {
@@ -179,23 +209,6 @@ function PromoIcon(props) {
       ]
     }
   );
-}
-const promoblock$1 = { "placement": { "title": "Bildposition", "center": "Bild oben", "left": "Bild links", "right": "Bild rechts", "below": "Bild unten" } };
-const de = {
-  promoblock: promoblock$1
-};
-const promoblock = { "placement": { "title": "Image placement", "center": "Image on top", "left": "Image left", "right": "Image right", "below": "Image below" } };
-const en = {
-  promoblock
-};
-const locales = { de, en };
-function english(key) {
-  const found = key.split(".").reduce((node, part) => node?.[part], en);
-  return typeof found === "string" ? found : key;
-}
-function translate(key) {
-  const fallback = english(key);
-  return getI18n()?.t(key, { defaultValue: fallback }) ?? fallback;
 }
 function placementIcon(paths, name) {
   function PlacementIcon({ size, className, ...rest }) {
@@ -326,6 +339,7 @@ function PromoSchema({
   formData = {}
 } = {}) {
   const hasImage2 = filled(formData.image);
+  const besideCopy = hasImage2 && SIDE_BY_SIDE.includes(text(formData.align));
   const hasAnyLabel2 = LABEL_FIELDS.some((field) => filled(formData[field]));
   const background = backgroundField(formData);
   return {
@@ -339,7 +353,8 @@ function PromoSchema({
           "title",
           "description",
           "image",
-          ...hasImage2 ? ["align"] : []
+          ...hasImage2 ? ["align"] : [],
+          ...besideCopy ? ["sticky_copy"] : []
         ]
       },
       {
@@ -388,6 +403,13 @@ function PromoSchema({
       // so no plugin emits its modifier class — both renderers emit
       // `has--align--<value>` themselves. `center` means image ABOVE the copy.
       align: placementField(),
+      // Offered only beside the picture; a value set there survives hidden,
+      // as `align` does without an image.
+      sticky_copy: {
+        title: translate("promoblock.sticky_copy.title"),
+        description: translate("promoblock.sticky_copy.description"),
+        type: "boolean"
+      },
       ...ctaProperties("primary"),
       ...ctaProperties("secondary"),
       // The Promo's own target, offered only while both action labels are empty.

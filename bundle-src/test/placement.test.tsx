@@ -87,6 +87,25 @@ describe('the image placement field', () => {
   });
 });
 
+describe('the sticky text column field', () => {
+  const sticky = () =>
+    PromoSchema({ formData: { image: '/pic', align: 'left' } }).properties.sticky_copy as Record<
+      string,
+      any
+    >;
+
+  it('speaks English by default', () => {
+    expect(sticky().title).toBe('Sticky text column');
+    expect(sticky().description).toMatch(/image left or right/);
+  });
+
+  it('speaks the editor’s German', () => {
+    editorIn('de');
+    expect(sticky().title).toBe('Textspalte fixieren');
+    expect(sticky().description).toMatch(/Bild links oder rechts/);
+  });
+});
+
 describe('the catalogs the bundle exports', () => {
   const keys = (catalog: object, prefix = ''): string[] =>
     Object.entries(catalog).flatMap(([key, value]) =>

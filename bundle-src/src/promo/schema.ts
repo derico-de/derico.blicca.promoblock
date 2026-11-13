@@ -27,12 +27,14 @@
  *    are bare strings behind `promo_link`, which looks the host's own picker
  *    up rather than importing either.
  *
- * INVARIANT: each fieldset holds exactly ONE conditional field and it is
- * LAST. Asserted in the vitest suite, so fact 2's hazard cannot creep back.
+ * INVARIANT: conditional fields only ever form a fieldset's TAIL, so hiding
+ * one never moves a field before it. Default's tail nests: `sticky_copy`
+ * needs `align`, which needs an image. Asserted in the vitest suite, so fact
+ * 2's hazard cannot creep back.
  */
 import { getStyleFieldDefinitionsFromRegistry } from '@plone/helpers';
 import { translate } from '../i18n';
-import { ALIGNMENTS, DEFAULT_ALIGN } from './data';
+import { ALIGNMENTS, DEFAULT_ALIGN, SIDE_BY_SIDE, text } from './data';
 import {
   ImageBelowIcon,
   ImageLeftIcon,
@@ -148,6 +150,8 @@ export function PromoSchema({
   formData = {},
 }: { formData?: Record<string, unknown> } = {}) {
   const hasImage = filled(formData.image);
+  const besideCopy =
+    hasImage && (SIDE_BY_SIDE as readonly string[]).includes(text(formData.align));
   const hasAnyLabel = LABEL_FIELDS.some((field) => filled(formData[field]));
   const background = backgroundField(formData);
 
@@ -163,6 +167,7 @@ export function PromoSchema({
           'description',
           'image',
           ...(hasImage ? ['align'] : []),
+          ...(besideCopy ? ['sticky_copy'] : []),
         ],
       },
       {
@@ -213,6 +218,14 @@ export function PromoSchema({
       // so no plugin emits its modifier class — both renderers emit
       // `has--align--<value>` themselves. `center` means image ABOVE the copy.
       align: placementField(),
+
+      // Offered only beside the picture; a value set there survives hidden,
+      // as `align` does without an image.
+      sticky_copy: {
+        title: translate('promoblock.sticky_copy.title'),
+        description: translate('promoblock.sticky_copy.description'),
+        type: 'boolean',
+      },
 
       ...ctaProperties('primary'),
       ...ctaProperties('secondary'),

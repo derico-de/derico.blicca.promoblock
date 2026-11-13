@@ -3,6 +3,9 @@
 ## 1.0.0a9 (unreleased)
 
 
+- New "Sticky text column" checkbox: with the image left or right, the
+  text stays in view while the image scrolls past. Themes set the top offset
+  with `--promo-sticky-top`.
 - The image placement offers "Image on top", "Image left", "Image right" and
   the new "Image below", picked from an icon row like the block width.
   Existing promos keep their placement.
