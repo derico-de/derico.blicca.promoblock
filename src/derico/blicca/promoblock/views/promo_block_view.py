@@ -113,15 +113,16 @@ class PromoBlockView(BaseBlockView):
 
     @property
     def root_class(self):
-        """``.promo``, the effective placement (always) and ``is--sticky-copy``.
+        """``.promo``, the effective placement (always) and ``has--copy--<position>``.
 
         The block owns its root; ``block block-promo has--block-width--<w>``
         and any ``has--backgroundColor--`` are the host wrapper's stamp,
         applied outside this markup by the Plate renderer's ``_block_attrs``.
         """
         css = f"promo has--align--{promo_data.effective_align(self.promo)}"
-        if promo_data.sticky_copy(self.promo):
-            css += " is--sticky-copy"
+        position = promo_data.copy_position(self.promo)
+        if position != promo_data.DEFAULT_COPY_POSITION:
+            css += f" has--copy--{position}"
         return css
 
     # -- the click rule ------------------------------------------------------

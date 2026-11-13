@@ -1,8 +1,8 @@
 /**
- * The image placement picker's four icons, drawn like `@plone/icons`'
- * image-left and image-right, which have no top or below siblings. The
- * picker renders them as `<Icon size="base" aria-label={label} />`, so they
- * take the Quanta icon classes and carry the label themselves.
+ * The icons of the image placement and text style pickers, drawn like
+ * `@plone/icons`' image-left and image-right, which have no top or below
+ * siblings. The picker renders them as `<Icon size="base" aria-label={label} />`,
+ * so they take the Quanta icon classes and carry the label themselves.
  */
 type PlacementIconProps = {
   size?: string;
@@ -69,3 +69,23 @@ export const ImageBelowIcon = placementIcon(
   ['M2 4H22V6H2V4Z', 'M2 8H22V10H2V8Z', FRAME_BOTTOM],
   'ImageBelowIcon',
 );
+
+// The text style icons: a tall picture on the left, the copy's lines beside it.
+const FRAME_TALL = 'M2 2V22H11V2H2ZM9 4H4V20H9V4Z';
+
+function copyLines(top: number) {
+  return [0, 4, 8].map(
+    (offset, line) => `M13 ${top + offset}H${line === 2 ? 19 : 22}V${top + offset + 2}H13Z`,
+  );
+}
+
+export const CopyStickyIcon = placementIcon(
+  [FRAME_TALL, ...copyLines(2).slice(0, 2), 'M16.5 10H18.5V17H16.5Z', 'M14 16H21L17.5 21Z'],
+  'CopyStickyIcon',
+);
+
+export const CopyTopIcon = placementIcon([FRAME_TALL, ...copyLines(2)], 'CopyTopIcon');
+
+export const CopyMiddleIcon = placementIcon([FRAME_TALL, ...copyLines(7)], 'CopyMiddleIcon');
+
+export const CopyBottomIcon = placementIcon([FRAME_TALL, ...copyLines(12)], 'CopyBottomIcon');

@@ -7,10 +7,13 @@
       "right": "Bild rechts",
       "below": "Bild unten"
     },
-    "sticky_copy": {
-      "title": "Textspalte fixieren",
-      "description": "Der Text bleibt sichtbar, während das Bild vorbeiscrollt. Nur bei Bild links oder rechts.",
-      "ignored": "Die fixierte Textspalte wird ignoriert: Das Bild steht nicht neben dem Text."
+    "copy_position": {
+      "title": "Textstil",
+      "sticky": "Fixiert",
+      "top": "Oben",
+      "middle": "Mitte",
+      "bottom": "Unten",
+      "ignored": "Der Textstil wird ignoriert: Das Bild steht nicht neben dem Text."
     }
   }
 }

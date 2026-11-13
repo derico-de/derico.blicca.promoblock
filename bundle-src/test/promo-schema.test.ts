@@ -94,10 +94,10 @@ describe('the fieldsets', () => {
     expect(fields.at(-1)).toBe('align');
   });
 
-  it('put `sticky_copy` after `align`, and only with the image left or right', () => {
+  it('put `copy_position` after `align`, and only with the image left or right', () => {
     for (const align of ['left', 'right']) {
       const fields = fieldsOf(PromoSchema({ formData: { image: '/pic', align } }), 'default');
-      expect(fields.slice(-2)).toEqual(['align', 'sticky_copy']);
+      expect(fields.slice(-2)).toEqual(['align', 'copy_position']);
     }
     for (const formData of [
       { image: '/pic' },
@@ -105,12 +105,12 @@ describe('the fieldsets', () => {
       { image: '/pic', align: 'below' },
       { align: 'left' },
     ]) {
-      expect(fieldsOf(PromoSchema({ formData }), 'default')).not.toContain('sticky_copy');
+      expect(fieldsOf(PromoSchema({ formData }), 'default')).not.toContain('copy_position');
     }
   });
 
-  it('make `sticky_copy` a host checkbox', () => {
-    expect((PromoSchema().properties as Record<string, any>).sticky_copy.type).toBe('boolean');
+  it('make `copy_position` the host icon row', () => {
+    expect((PromoSchema().properties as Record<string, any>).copy_position.widget).toBe('align');
   });
 
   it('put `card_link` last in Actions, and only while both labels are empty', () => {

@@ -68,11 +68,13 @@ offered then.
 _Avoid_: top (the stored value is `center`; "on top" is only its label),
 alignment (that reads as text alignment), float.
 
-**Sticky copy**:
-The copy column staying in view while a taller picture scrolls past. Stored as
-`sticky_copy`, labelled "Sticky text column". Only means something with the
-picture `left` or `right`; otherwise it is ignored and kept on disk.
-_Avoid_: fixed (that is `position: fixed`), pinned.
+**Copy position**:
+Where the copy column sits beside the picture: `sticky`, `top`, `middle` or
+`bottom`, stored as `copy_position` and labelled "Text style". `middle` is the
+default. `sticky` starts at the top and stays in view while a taller picture
+scrolls past. Only means something with the picture `left` or `right`;
+otherwise it is ignored and kept on disk.
+_Avoid_: fixed (that is `position: fixed`), pinned, vertical alignment.
 
 **Theme seam**:
 The custom properties a host theme sets to make the Promo its own — a fixed,

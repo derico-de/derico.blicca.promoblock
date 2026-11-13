@@ -24,7 +24,7 @@ export type PromoData = {
   description?: unknown;
   image?: unknown;
   align?: unknown;
-  sticky_copy?: unknown;
+  copy_position?: unknown;
   card_link?: unknown;
   cta_primary_label?: unknown;
   cta_primary_link?: unknown;
@@ -63,6 +63,14 @@ export type Alignment = (typeof ALIGNMENTS)[number];
 
 /** The placements that put the copy in a column beside the picture. */
 export const SIDE_BY_SIDE = ['left', 'right'] as const;
+
+/**
+ * Where the copy column sits beside the picture, in the picker's order.
+ * `middle` is the default and emits no class.
+ */
+export const COPY_POSITIONS = ['sticky', 'top', 'middle', 'bottom'] as const;
+export type CopyPosition = (typeof COPY_POSITIONS)[number];
+export const DEFAULT_COPY_POSITION = 'middle';
 
 /** The scale the canvas previews a picked image at. Preview only — the
  *  public page's resolution ladder is the server half's (ticket 09). */
@@ -310,12 +318,15 @@ export function effectiveAlign(data: PromoData): Alignment {
   return ALIGNMENTS.includes(stored) ? stored : DEFAULT_ALIGN;
 }
 
-/** Does the copy column stick while the picture scrolls past? Only beside it. */
-export function stickyCopy(data: PromoData): boolean {
-  return (
-    data.sticky_copy === true &&
-    (SIDE_BY_SIDE as readonly string[]).includes(effectiveAlign(data))
-  );
+export function besideCopy(data: PromoData): boolean {
+  return (SIDE_BY_SIDE as readonly string[]).includes(effectiveAlign(data));
+}
+
+/** The copy column's effective position; `middle` unless beside the picture. */
+export function copyPosition(data: PromoData): CopyPosition {
+  const stored = text(data.copy_position) as CopyPosition;
+  if (!besideCopy(data) || !COPY_POSITIONS.includes(stored)) return DEFAULT_COPY_POSITION;
+  return stored;
 }
 
 /* ── editor honesty ─────────────────────────────────────────────────────── */
@@ -390,8 +401,9 @@ export function warnings(data: PromoData): string[] {
   if (text(data.align) && !hasImage(data)) {
     notes.push('The image placement is ignored: there is no image to place.');
   }
-  if (data.sticky_copy === true && !stickyCopy(data)) {
-    notes.push(translate('promoblock.sticky_copy.ignored'));
+  const position = text(data.copy_position);
+  if (position && position !== DEFAULT_COPY_POSITION && copyPosition(data) !== position) {
+    notes.push(translate('promoblock.copy_position.ignored'));
   }
   return notes;
 }

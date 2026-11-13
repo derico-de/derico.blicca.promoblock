@@ -28,14 +28,25 @@
  *    up rather than importing either.
  *
  * INVARIANT: conditional fields only ever form a fieldset's TAIL, so hiding
- * one never moves a field before it. Default's tail nests: `sticky_copy`
+ * one never moves a field before it. Default's tail nests: `copy_position`
  * needs `align`, which needs an image. Asserted in the vitest suite, so fact
  * 2's hazard cannot creep back.
  */
 import { getStyleFieldDefinitionsFromRegistry } from '@plone/helpers';
 import { translate } from '../i18n';
-import { ALIGNMENTS, DEFAULT_ALIGN, SIDE_BY_SIDE, text } from './data';
 import {
+  ALIGNMENTS,
+  COPY_POSITIONS,
+  DEFAULT_ALIGN,
+  DEFAULT_COPY_POSITION,
+  SIDE_BY_SIDE,
+  text,
+} from './data';
+import {
+  CopyBottomIcon,
+  CopyMiddleIcon,
+  CopyStickyIcon,
+  CopyTopIcon,
   ImageBelowIcon,
   ImageLeftIcon,
   ImageRightIcon,
@@ -114,6 +125,29 @@ function placementField() {
   };
 }
 
+const COPY_POSITION_ICONS = {
+  sticky: CopyStickyIcon,
+  top: CopyTopIcon,
+  middle: CopyMiddleIcon,
+  bottom: CopyBottomIcon,
+};
+
+/** The same icon row, for where the copy column sits beside the picture. */
+function copyPositionField() {
+  return {
+    title: translate('promoblock.copy_position.title'),
+    widget: 'align',
+    actions: [...COPY_POSITIONS],
+    actionsInfoMap: Object.fromEntries(
+      COPY_POSITIONS.map((value) => [
+        value,
+        [COPY_POSITION_ICONS[value], translate(`promoblock.copy_position.${value}`)],
+      ]),
+    ),
+    default: DEFAULT_COPY_POSITION,
+  };
+}
+
 /** One action slot: a label, a link and a variant. Both variants always shown. */
 function ctaProperties(slot: 'primary' | 'secondary') {
   const label = slot === 'primary' ? 'Primary' : 'Secondary';
@@ -167,7 +201,7 @@ export function PromoSchema({
           'description',
           'image',
           ...(hasImage ? ['align'] : []),
-          ...(besideCopy ? ['sticky_copy'] : []),
+          ...(besideCopy ? ['copy_position'] : []),
         ],
       },
       {
@@ -221,11 +255,7 @@ export function PromoSchema({
 
       // Offered only beside the picture; a value set there survives hidden,
       // as `align` does without an image.
-      sticky_copy: {
-        title: translate('promoblock.sticky_copy.title'),
-        description: translate('promoblock.sticky_copy.description'),
-        type: 'boolean',
-      },
+      copy_position: copyPositionField(),
 
       ...ctaProperties('primary'),
       ...ctaProperties('secondary'),

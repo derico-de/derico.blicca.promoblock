@@ -111,9 +111,9 @@ describe('the notices', () => {
       /no image to place/,
     ],
     [
-      'a sticky text column with the image not beside it',
-      { image: '/pic', align: 'center', sticky_copy: true },
-      /sticky text column is ignored/,
+      'a text style with the image not beside it',
+      { image: '/pic', align: 'center', copy_position: 'sticky' },
+      /text style is ignored/,
     ],
     [
       'an image value that is not a picture',

@@ -41,9 +41,10 @@
 import {
   actions,
   cardLink,
+  copyPosition,
+  DEFAULT_COPY_POSITION,
   effectiveAlign,
   imageSrc,
-  stickyCopy,
   text,
   type PromoData,
 } from './data';
@@ -85,10 +86,11 @@ export function PromoView({ data = {}, isEditMode }: PromoViewProps) {
 
   const copy = kicker || title || description || cta.length > 0;
 
+  const position = copyPosition(data);
   const promo = (
     <div
       className={`promo has--align--${effectiveAlign(data)}${
-        stickyCopy(data) ? ' is--sticky-copy' : ''
+        position === DEFAULT_COPY_POSITION ? '' : ` has--copy--${position}`
       }`}
     >
       {image ? (

@@ -9,6 +9,10 @@ import { AlignWidget } from '@plone/components/quanta';
 import { locales } from '../src/index';
 import PromoSchema from '../src/promo/schema';
 import {
+  CopyBottomIcon,
+  CopyMiddleIcon,
+  CopyStickyIcon,
+  CopyTopIcon,
   ImageBelowIcon,
   ImageLeftIcon,
   ImageRightIcon,
@@ -87,22 +91,60 @@ describe('the image placement field', () => {
   });
 });
 
-describe('the sticky text column field', () => {
-  const sticky = () =>
-    PromoSchema({ formData: { image: '/pic', align: 'left' } }).properties.sticky_copy as Record<
+describe('the text style field', () => {
+  const style = () =>
+    PromoSchema({ formData: { image: '/pic', align: 'left' } }).properties.copy_position as Record<
       string,
       any
     >;
+  const styleInfo = (pick: 0 | 1) =>
+    Object.fromEntries(
+      Object.entries(style().actionsInfoMap as Record<string, [unknown, string]>).map(
+        ([value, info]) => [value, info[pick]],
+      ),
+    );
+
+  it('offers sticky, top, middle and bottom, middle by default', () => {
+    expect(style().widget).toBe('align');
+    expect(style().actions).toEqual(['sticky', 'top', 'middle', 'bottom']);
+    expect(style().default).toBe('middle');
+  });
+
+  it('gives each style its own icon', () => {
+    expect(styleInfo(0)).toEqual({
+      sticky: CopyStickyIcon,
+      top: CopyTopIcon,
+      middle: CopyMiddleIcon,
+      bottom: CopyBottomIcon,
+    });
+  });
 
   it('speaks English by default', () => {
-    expect(sticky().title).toBe('Sticky text column');
-    expect(sticky().description).toMatch(/image left or right/);
+    expect(style().title).toBe('Text style');
+    expect(styleInfo(1)).toEqual({
+      sticky: 'Sticky',
+      top: 'Top',
+      middle: 'Middle',
+      bottom: 'Bottom',
+    });
   });
 
   it('speaks the editor’s German', () => {
     editorIn('de');
-    expect(sticky().title).toBe('Textspalte fixieren');
-    expect(sticky().description).toMatch(/Bild links oder rechts/);
+    expect(style().title).toBe('Textstil');
+    expect(styleInfo(1)).toEqual({
+      sticky: 'Fixiert',
+      top: 'Oben',
+      middle: 'Mitte',
+      bottom: 'Unten',
+    });
+  });
+
+  it('renders as four labelled icon radios in the host widget', () => {
+    const { title, default: _default, ...props } = style();
+    render(<AlignWidget aria-label={title} value="sticky" onChange={() => {}} {...props} />);
+    expect(screen.getAllByRole('radio')).toHaveLength(4);
+    expect((screen.getByRole('radio', { name: 'Sticky' }) as HTMLInputElement).checked).toBe(true);
   });
 });
 

@@ -80,6 +80,8 @@ class TestScreenParity:
         assert ts_scalar("DEFAULT_ALIGN") == promo_data.DEFAULT_ALIGN
         assert ts_array("ALIGNMENTS") == promo_data.ALIGNMENTS
         assert ts_array("SIDE_BY_SIDE") == promo_data.SIDE_BY_SIDE
+        assert ts_array("COPY_POSITIONS") == promo_data.COPY_POSITIONS
+        assert ts_scalar("DEFAULT_COPY_POSITION") == promo_data.DEFAULT_COPY_POSITION
         assert ts_array("CTA_SLOTS") == promo_data.CTA_SLOTS
 
 
@@ -282,24 +284,24 @@ class TestEffectiveAlign:
         assert data["align"] == "left"
 
 
-class TestStickyCopy:
-    """The copy column sticks only beside the picture."""
+class TestCopyPosition:
+    """The text style applies only beside the picture."""
 
     @pytest.mark.parametrize(
         "data,expected",
         [
-            ({"sticky_copy": True, "align": "left", "image_url": "/p"}, True),
-            ({"sticky_copy": True, "align": "right", "image_url": "/p"}, True),
-            ({"sticky_copy": True, "align": "center", "image_url": "/p"}, False),
-            ({"sticky_copy": True, "align": "below", "image_url": "/p"}, False),
-            ({"sticky_copy": True, "align": "left"}, False),
-            ({"sticky_copy": False, "align": "left", "image_url": "/p"}, False),
-            ({"sticky_copy": "true", "align": "left", "image_url": "/p"}, False),
-            ({"align": "left", "image_url": "/p"}, False),
+            ({"copy_position": "sticky", "align": "left", "image_url": "/p"}, "sticky"),
+            ({"copy_position": "top", "align": "right", "image_url": "/p"}, "top"),
+            ({"copy_position": "bottom", "align": "left", "image_url": "/p"}, "bottom"),
+            ({"copy_position": "sticky", "align": "center", "image_url": "/p"}, "middle"),
+            ({"copy_position": "top", "align": "below", "image_url": "/p"}, "middle"),
+            ({"copy_position": "sticky", "align": "left"}, "middle"),
+            ({"copy_position": "nowhere", "align": "left", "image_url": "/p"}, "middle"),
+            ({"align": "left", "image_url": "/p"}, "middle"),
         ],
     )
     def test_only_beside_the_picture(self, data, expected):
-        assert promo_data.sticky_copy(data) is expected
+        assert promo_data.copy_position(data) == expected
 
 
 class TestReadingTolerantly:
@@ -312,4 +314,4 @@ class TestReadingTolerantly:
         assert promo_data.image_url(data) == ""
         assert promo_data.effective_align(data) == "center"
         assert promo_data.has_any_label(data) is False
-        assert promo_data.sticky_copy(data) is False
+        assert promo_data.copy_position(data) == "middle"
