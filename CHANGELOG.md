@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0a9 (unreleased)
+## 1.0.0a9 (2026-11-14)
 
 
 - Image placement and text style move to the Styling fieldset, under the
